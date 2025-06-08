@@ -10,6 +10,7 @@ let assetRecordCRUDModule = require('./AssetsTableCRUD.js');
 let bidRecordCRUDModule = require('./BidsTableCRUD.js');
 let userAuthenticationModule = require('./UserAuthentication.js');
 let retrieveAuctionsModule = require('./RetrieveAuctions.js');
+let closeAuctionModule = require('./CloseAuction.js');
 
 
 httpClientModule.createServer( (httpRequest, httpResponse) =>
@@ -60,7 +61,7 @@ function processSmartBidInputRequests(queryParserPathName, queryParserQueryData,
 
             break;
 
-        case "/AddCustomer" :
+        case "/AddAsset" :
 
             httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
             httpResponse.write("pathName = " + queryParserPathName + "\n");
@@ -87,6 +88,12 @@ function processSmartBidInputRequests(queryParserPathName, queryParserQueryData,
         case "/RetrieveAuctions" :
 
             retrieveAuctionsModule.retrieveAuctions(mySqlConnection, queryParserQueryData, httpResponse);
+
+            break;
+
+        case "/CloseAuction" :
+
+            closeAuctionModule.closeAuction(mySqlConnection, queryParserQueryData, httpResponse);
 
             break;
 

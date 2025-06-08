@@ -3,7 +3,12 @@ function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
 {
     try
     {
-        var mySqlRetrieveAuctionsQuery = 'Select * from assets';
+        var mySqlRetrieveAuctionsQuery = 'Select * from assets where Status = "' + inputQueryRecord.Status + '"';
+
+        if( inputQueryRecord.SellerCustomerId != undefined )
+        {
+            mySqlRetrieveAuctionsQuery += ' and SellerCustomerId = ' + inputQueryRecord.SellerCustomerId;
+        }
 
         mySqlConnection.connect( (error) => {
 

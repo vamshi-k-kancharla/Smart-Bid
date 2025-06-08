@@ -4,7 +4,25 @@ function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpR
 {
     try
     {
-        var mySqlUserPasswordHashResult = 'Select Password from customers where EmailAddress = "' + inputCustomerRecord.EmailAddress + '"';
+        let mySqlUserPasswordHashResult = 'Select Password from customers where EmailAddress = "' + inputCustomerRecord.EmailAddress + '"';
+        let mySqlUserAuthReturnResults = 'Select CustomerId, Name, EmailAddress, PhoneNumber from customers where EmailAddress = "' + 
+            inputCustomerRecord.EmailAddress + '"';
+
+        console.log("mySqlUserPasswordHashResult = " + mySqlUserPasswordHashResult);
+        console.log("mySqlUserAuthReturnResults = " + mySqlUserAuthReturnResults);
+
+        if( inputCustomerRecord.EmailAddress == null || inputCustomerRecord.EmailAddress == undefined ||
+            inputCustomerRecord.PasswordCode == null || inputCustomerRecord.PasswordCode == undefined ||
+            inputCustomerRecord.EmailAddress == "" || inputCustomerRecord.PasswordCode == ""
+        )
+        {
+            console.error("Error occured while Authenticating user, Empty credentials ");
+
+            httpResponse.writeHead( 401, {'content-type' : 'text/plain'});
+            httpResponse.end("Error occured while Authenticating user, Empty credentials ");
+
+            return;
+        }
 
         mySqlConnection.connect( (error) => {
 
@@ -32,8 +50,21 @@ function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpR
 
             if (passwordCompare)
             {
-                httpResponse.writeHead( 200, {'content-type' : 'text/plain'});
-                httpResponse.end("User is successfully authenticated ");
+
+                mySqlConnection.query( mySqlUserAuthReturnResults, (error, result) => {
+
+                    if(error)
+                    {
+                        console.error("Error occured while retrieving User Auth details from customers table => " + error.message);
+                        throw Error;
+                    }
+
+                    console.log("Successfully retrieved the User auth details from customers table...No Of Records = " + result.length);
+
+                    httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
+                    httpResponse.end(JSON.stringify(result));
+                });
+
             }
             else
             {

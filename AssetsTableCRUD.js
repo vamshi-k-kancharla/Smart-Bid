@@ -12,6 +12,7 @@ function createAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
         '"' + inputAssetRecord.City + '",' +
         '"' + inputAssetRecord.State + '",' +
         '"' + inputAssetRecord.Country + '",' +
+        '' + inputAssetRecord.MinAuctionPrice + ',' +
         '' + inputAssetRecord.SellerCustomerId + ',' +
         '"' + inputAssetRecord.ApprovalType + '",' +
         '"' + inputAssetRecord.AssetSize + '",' +
@@ -21,7 +22,7 @@ function createAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
         console.log("asset DB Record Values = " + assetRecordValues);
 
         var mySqlAssetDBRecordAdd = 'INSERT INTO assets ( AssetType, MinAuctionPrice, Address, Colony, City, State, Country,' +
-        'SellerCustomerId, ApprovalType, AssetSize, BuiltUpArea, Status ) Values ' + assetRecordValues;
+        'CurrentBidPrice, SellerCustomerId, ApprovalType, AssetSize, BuiltUpArea, Status ) Values ' + assetRecordValues;
 
         console.log("Asset DB Record Query = " + mySqlAssetDBRecordAdd);
 
