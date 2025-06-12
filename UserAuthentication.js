@@ -68,6 +68,8 @@ function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpR
             }
             else
             {
+                console.error("passwords didn't match....bailing out with unauthorized error");
+
                 httpResponse.writeHead( 401, {'content-type' : 'text/plain'});
                 httpResponse.end("User Authentication failed ");
             }
