@@ -46,56 +46,57 @@ function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 
             console.log("Successfully connected to MySql Server");
 
-        });
-
-        mySqlConnection.beginTransaction( (error) => {
-
-            if(error)
-            {
-                console.error("Error occured while starting transaction for Bids placement => " + error.message);
-                throw error;
-            }
-
-            console.error("DB Transaction has been successfully started");
-
-            mySqlConnection.query( mySqlBidDBRecordAdd, (error, result) => {
+            mySqlConnection.beginTransaction( (error) => {
 
                 if(error)
                 {
-                    console.error("Error occured while adding bids Table Record => " + error.message);
+                    console.error("Error occured while starting transaction for Bids placement => " + error.message);
                     throw error;
                 }
 
-                console.log("Successfully added the bid records to the Bids Table " + result.affectedRows);
-                console.log("Now updating the assets table with input values ");
+                console.error("DB Transaction has been successfully started");
 
-                mySqlConnection.query( mySqlAssetsRecordUpdate, (error, result) => {
+                mySqlConnection.query( mySqlBidDBRecordAdd, (error, result) => {
 
                     if(error)
                     {
-                        console.error("Error occured while updating Assets table Record => " + error.message);
+                        console.error("Error occured while adding bids Table Record => " + error.message);
                         throw error;
                     }
 
-                    console.log("Successfully upated the asset record => " + result.affectedRows);
+                    console.log("Successfully added the bid records to the Bids Table " + result.affectedRows);
+                    console.log("Now updating the assets table with input values ");
 
-                    mySqlConnection.commit( (error) => {
+                    mySqlConnection.query( mySqlAssetsRecordUpdate, (error, result) => {
 
                         if(error)
                         {
-                            console.error("Error occured while commiting transaction for bids placement => " + error.message);
+                            console.error("Error occured while updating Assets table Record => " + error.message);
                             throw error;
                         }
 
-                        httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
-                        httpResponse.end("Successfully placed the bid for current asset");
+                        console.log("Successfully upated the asset record => " + result.affectedRows);
+
+                        mySqlConnection.commit( (error) => {
+
+                            if(error)
+                            {
+                                console.error("Error occured while commiting transaction for bids placement => " + error.message);
+                                throw error;
+                            }
+
+                            httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
+                            httpResponse.end("Successfully placed the bid for current asset");
+                        });
+                    
                     });
-                
+
                 });
 
             });
 
         });
+
     }
 
     catch(exception)

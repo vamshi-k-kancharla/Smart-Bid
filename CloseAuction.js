@@ -33,34 +33,35 @@ function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
 
             console.log("Successfully connected to MySql Server");
 
+            mySqlConnection.query( mySqlCloseAuctionQuery, (error, result) => {
+
+                if(error)
+                {
+                    console.error("Error occured while closing auction in assets table => " + error.message);
+                    throw Error;
+                }
+
+                if( result.affectedRows === 1 )
+                {
+
+                    console.log("Successfully closed the auction through assets table ");
+
+                    httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
+                    httpResponse.end("Successfully closed the auction through assets table");
+                }
+                else
+                {
+
+                    console.log("Bad Request...No Auction has gotten closed");
+
+                    httpResponse.writeHead( 400, {'content-type' : 'text/plain'});    
+                    httpResponse.end("Bad Request...No Auction has gotten closed");
+                }
+
+            });
+            
         });
 
-        mySqlConnection.query( mySqlCloseAuctionQuery, (error, result) => {
-
-            if(error)
-            {
-                console.error("Error occured while closing auction in assets table => " + error.message);
-                throw Error;
-            }
-
-            if( result.affectedRows === 1 )
-            {
-
-                console.log("Successfully closed the auction through assets table ");
-
-                httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
-                httpResponse.end("Successfully closed the auction through assets table");
-            }
-            else
-            {
-
-                console.log("Bad Request...No Auction has gotten closed");
-
-                httpResponse.writeHead( 400, {'content-type' : 'text/plain'});    
-                httpResponse.end("Bad Request...No Auction has gotten closed");
-            }
-
-        });
     }
 
     catch(exception)

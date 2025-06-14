@@ -39,22 +39,23 @@ function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
 
             console.log("Successfully connected to MySql Server");
 
+            mySqlConnection.query( mySqlRetrieveAuctionsQuery, (error, result) => {
+
+                if(error)
+                {
+                    console.error("Error occured while retrieving auctions from assets table => " + error.message);
+                    throw Error;
+                }
+
+                console.log("Successfully retrieved the auctions from assets table...No Of Records = " + result.length);
+
+                httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
+                httpResponse.end(JSON.stringify(result));
+
+            });
+
         });
 
-        mySqlConnection.query( mySqlRetrieveAuctionsQuery, (error, result) => {
-
-            if(error)
-            {
-                console.error("Error occured while retrieving auctions from assets table => " + error.message);
-                throw Error;
-            }
-
-            console.log("Successfully retrieved the auctions from assets table...No Of Records = " + result.length);
-
-            httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
-            httpResponse.end(JSON.stringify(result));
-
-        });
     }
 
     catch(exception)

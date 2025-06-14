@@ -55,29 +55,29 @@ function checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomerRecord
 
             console.log("Successfully connected to MySql Server");
 
-        });
+            mySqlConnection.query( mySqlCustomerDBRecordCheckUniqueness, (error, result) => {
 
-        mySqlConnection.query( mySqlCustomerDBRecordCheckUniqueness, (error, result) => {
+                if(error)
+                {
+                    console.error("Error occured while Querying customers Record Table => " + error.message);
+                    throw error;
+                }
 
-            if(error)
-            {
-                console.error("Error occured while Querying customers Record Table => " + error.message);
-                throw error;
-            }
+                console.log("Successfully retrieved the Customers Record from customers table...No Of Records = " + result.length);
 
-            console.log("Successfully retrieved the Customers Record from customers table...No Of Records = " + result.length);
+                if( result.length == 0 )
+                {
+                    addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse);
+                }
+                else
+                {
+                    httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
+                    httpResponse.end("Customer Record with the given email address/phone number already exists");
 
-            if( result.length == 0 )
-            {
-                addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse);
-            }
-            else
-            {
-                httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
-                httpResponse.end("Customer Record with the given email address/phone number already exists");
+                    return;
+                }
 
-                return;
-            }
+            });
 
         });
 
@@ -129,20 +129,21 @@ function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse
 
             console.log("Successfully connected to MySql Server");
 
+            mySqlConnection.query( mySqlCustomerDBRecordAdd, (error, result) => {
+
+                if(error)
+                {
+                    console.error("Error occured while adding customers DB Record => " + error.message);
+                }
+
+                console.log("Successfully added the customer records to the DB " + result.affectedRows);
+
+                httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
+                httpResponse.end("Successfully added the customer records to the DB " + result.affectedRows);
+            });
+
         });
 
-        mySqlConnection.query( mySqlCustomerDBRecordAdd, (error, result) => {
-
-            if(error)
-            {
-                console.error("Error occured while adding customers DB Record => " + error.message);
-            }
-
-            console.log("Successfully added the customer records to the DB " + result.affectedRows);
-
-            httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
-            httpResponse.end("Successfully added the customer records to the DB " + result.affectedRows);
-        });
     }
 
     catch(exception)
