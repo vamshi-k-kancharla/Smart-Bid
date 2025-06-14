@@ -1,28 +1,34 @@
 let bCryptHashModule = require('bcryptjs');
 
+let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
+let InputValidatorModule = require("./HelperUtils/InputValidator.js");
+
+
 function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpResponse)
 {
     try
     {
+
+        // Validate the Incoming Request
+
+        if( !InputValidatorModule.validateUserInputObjectValue(inputCustomerRecord) ||
+            !InputValidatorModule.validateUserInputObject(inputCustomerRecord, GlobalsForServerModule.userAuthRecordRequiredValues) )
+        {
+
+            httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
+            httpResponse.end("Bad request from client...One or more missing User Authentication Record Input values");
+
+            return;
+        }
+
+        // Process the Incoming Request
+        
         let mySqlUserPasswordHashResult = 'Select Password from customers where EmailAddress = "' + inputCustomerRecord.EmailAddress + '"';
         let mySqlUserAuthReturnResults = 'Select CustomerId, Name, EmailAddress, PhoneNumber from customers where EmailAddress = "' + 
             inputCustomerRecord.EmailAddress + '"';
 
         console.log("mySqlUserPasswordHashResult = " + mySqlUserPasswordHashResult);
         console.log("mySqlUserAuthReturnResults = " + mySqlUserAuthReturnResults);
-
-        if( inputCustomerRecord.EmailAddress == null || inputCustomerRecord.EmailAddress == undefined ||
-            inputCustomerRecord.PasswordCode == null || inputCustomerRecord.PasswordCode == undefined ||
-            inputCustomerRecord.EmailAddress == "" || inputCustomerRecord.PasswordCode == ""
-        )
-        {
-            console.error("Error occured while Authenticating user, Empty credentials ");
-
-            httpResponse.writeHead( 401, {'content-type' : 'text/plain'});
-            httpResponse.end("Error occured while Authenticating user, Empty credentials ");
-
-            return;
-        }
 
         mySqlConnection.connect( (error) => {
 

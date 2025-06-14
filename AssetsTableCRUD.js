@@ -1,10 +1,28 @@
 
+let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
+let InputValidatorModule = require("./HelperUtils/InputValidator.js");
+
+
 function createAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
 {
 
     try
     {
 
+        // Validate the Incoming Request
+
+        if( !InputValidatorModule.validateUserInputObjectValue(inputAssetRecord) ||
+            !InputValidatorModule.validateUserInputObject(inputAssetRecord, GlobalsForServerModule.assetRecordRequiredValues) )
+        {
+
+            httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
+            httpResponse.end("Bad request from client...One or more missing Asset Record Input values");
+
+            return;
+        }
+
+        // Process the Incoming Request
+        
         var assetRecordValues = '("' + inputAssetRecord.AssetType + '",' +
         '"' + inputAssetRecord.MinAuctionPrice + '",' +
         '"' + inputAssetRecord.Address + '",' +
@@ -47,6 +65,7 @@ function createAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
 
             console.log("Successfully added the records to the DB " + result.affectedRows);
 
+            httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
             httpResponse.end("Successfully added the asset records to the DB " + result.affectedRows);
         });
     }
@@ -54,6 +73,8 @@ function createAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
     catch(exception)
     {
         console.error("Error occured while adding asset record to the DB = " + exception.message);
+
+        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
         httpResponse.end("Error occured while adding asset record to the DB = " + exception.message);
     }
 }

@@ -67,26 +67,17 @@ function processSmartBidInputGETRequests(queryParserPathName, queryParserQueryDa
 
         case "/AddCustomer" :
 
-            httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
-            httpResponse.write("pathName = " + queryParserPathName + "\n");
-
             customersRecordCRUDModule.createCustomersDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
 
             break;
 
         case "/AddAsset" :
 
-            httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
-            httpResponse.write("pathName = " + queryParserPathName + "\n");
-
             assetRecordCRUDModule.createAssetsDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
 
             break;
 
         case "/AddBid" :
-
-            httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
-            httpResponse.write("pathName = " + queryParserPathName + "\n");
 
             bidRecordCRUDModule.createBidsDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
 

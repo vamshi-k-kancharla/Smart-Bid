@@ -1,8 +1,27 @@
 
+let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
+let InputValidatorModule = require("./HelperUtils/InputValidator.js");
+
+
 function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
 {
     try
     {
+
+        // Validate the Incoming Request
+
+        if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
+            !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.retrieveAuctionsRequiredValues) )
+        {
+
+            httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
+            httpResponse.end("Bad request from client...One or more missing Retrieve Auctions Record Input values");
+
+            return;
+        }
+
+        // Process the Incoming Request
+        
         var mySqlRetrieveAuctionsQuery = 'Select * from assets where Status = "' + inputQueryRecord.Status + '"';
 
         if( inputQueryRecord.SellerCustomerId != undefined )
@@ -42,7 +61,7 @@ function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
     {
         console.error("Error occured while retrieving the auctions = " + exception.message);
 
-        httpResponse.writeHead( 200, {'content-type' : 'text/plain'});
+        httpResponse.writeHead( 500, {'content-type' : 'text/plain'});
         httpResponse.end("No Auctions could be retrieved from auction DB");
     }
 }

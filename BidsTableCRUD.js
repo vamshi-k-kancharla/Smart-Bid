@@ -1,3 +1,6 @@
+let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
+let InputValidatorModule = require("./HelperUtils/InputValidator.js");
+
 
 function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 {
@@ -5,6 +8,20 @@ function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
     try
     {
 
+        // Validate the Incoming Request
+
+        if( !InputValidatorModule.validateUserInputObjectValue(inputBidRecord) ||
+            !InputValidatorModule.validateUserInputObject(inputBidRecord, GlobalsForServerModule.bidRecordRequiredValues) )
+        {
+
+            httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
+            httpResponse.end("Bad request from client...One or more missing Bid Record Input values");
+
+            return;
+        }
+
+        // Process the Incoming Request
+        
         var bidRecordValues = '(' + inputBidRecord.AssetId + ',' +
         '' + inputBidRecord.CustomerId + ',' +
         '"' + inputBidRecord.BidPrice + '")';
@@ -70,6 +87,7 @@ function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
                             throw error;
                         }
 
+                        httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
                         httpResponse.end("Successfully placed the bid for current asset");
                     });
                 
@@ -92,6 +110,7 @@ function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
             }
         });
 
+        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
         httpResponse.end("Error occured while adding bid record to the Table = " + exception.message);
     }
 }
