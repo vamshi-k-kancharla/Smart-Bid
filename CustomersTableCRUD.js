@@ -20,10 +20,85 @@ function createCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpRespo
             return;
         }
 
-        //ToDo : Valiate the uniqueness of EmailAddress
+        // Validate the uniqueness of EmailAddress & Phone Number
+
+        checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomerRecord, httpResponse );
+    }
+
+    catch(exception)
+    {
+        console.error("Error occured while adding customer record to the DB = " + exception.message);
+
+        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
+        httpResponse.end("Error occured while adding customer record to the DB = " + exception.message);
+    }
+}
+
+function checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomerRecord, httpResponse)
+{
+    try
+    {
+        // Process the Customer Record Request for uniqueness
         
+        var mySqlCustomerDBRecordCheckUniqueness = 'select * from customers where EmailAddress = "' + inputCustomerRecord.EmailAddress + 
+        '" or PhoneNumber = "' + inputCustomerRecord.PhoneNumber + '"';
+
+        console.log("Customer DB Record Uniqueness check Query = " + mySqlCustomerDBRecordCheckUniqueness);
+
+        mySqlConnection.connect( (error) => {
+
+            if(error)
+            {
+                console.error("Error occured while connecting to mySql Server => " + error.message);
+                throw error;
+            }
+
+            console.log("Successfully connected to MySql Server");
+
+        });
+
+        mySqlConnection.query( mySqlCustomerDBRecordCheckUniqueness, (error, result) => {
+
+            if(error)
+            {
+                console.error("Error occured while Querying customers Record Table => " + error.message);
+                throw error;
+            }
+
+            console.log("Successfully retrieved the Customers Record from customers table...No Of Records = " + result.length);
+
+            if( result.length == 0 )
+            {
+                addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse);
+            }
+            else
+            {
+                httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
+                httpResponse.end("Customer Record with the given email address/phone number already exists");
+
+                return;
+            }
+
+        });
+
+    }
+
+    catch(exception)
+    {
+        console.error("Error occured while Querying for customer record = " + exception.message);
+
+        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
+        httpResponse.end("Error occured while checking the uniqueness of Customer Record");
+    }
+}
+
+function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse)
+{
+    try
+    {
+
         // Process the Incoming Request
-        
+            
         console.log("Hash Generation salt = " + bCryptHashModule.genSaltSync(GlobalsForServerModule.hashGenerationSalt));
 
         var customerRecordValues = '("' + inputCustomerRecord.Name + '",' +
@@ -78,6 +153,7 @@ function createCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpRespo
         httpResponse.end("Error occured while adding customer record to the DB = " + exception.message);
     }
 }
+
 
 module.exports = {createCustomersDBRecord};
 
