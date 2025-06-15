@@ -20,6 +20,95 @@ function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
             return;
         }
 
+        checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpResponse);
+
+    }
+
+    catch(exception)
+    {
+        console.error("Error occured while adding bid record to the Table = " + exception.message);
+        
+        mySqlConnection.rollback( (error) => {
+
+            if(error)
+            {
+                console.error("Error occured while rolling back transaction for bids placement => " + error.message);
+            }
+        });
+
+        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
+        httpResponse.end("Error occured while adding bid record to the Table = " + exception.message);
+    }
+}
+
+function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpResponse)
+{
+
+    try
+    {
+        // Check for existence of Bid Record
+        
+        var mySqlCheckBidRecordExistence = 'select * from bids where ' +
+            'AssetId = ' + inputBidRecord.AssetId + ' and ' +
+            'CustomerId = ' + inputBidRecord.CustomerId + ' and ' +
+            'BidPrice = "' + inputBidRecord.BidPrice + '"';
+
+        console.log("Bid DB Record Existence Query = " + mySqlCheckBidRecordExistence);
+
+        mySqlConnection.connect( (error) => {
+
+            if(error)
+            {
+                console.error("Error occured while connecting to mySql Server => " + error.message);
+                throw error;
+            }
+
+            console.log("Successfully connected to MySql Server");
+
+            mySqlConnection.query( mySqlCheckBidRecordExistence, (error, result) => {
+
+                if(error)
+                {
+                    console.error("Error occured while Querying Bids Record Table => " + error.message);
+                    throw error;
+                }
+
+                console.log("Successfully retrieved the Record from Bids table...No Of Records = " + result.length);
+
+                if( result.length == 0 )
+                {
+                    addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse);
+                }
+                else
+                {
+                    httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
+                    httpResponse.end("Bid Record with the given values already exists");
+
+                    return;
+                }
+
+            });
+
+        });
+
+    }
+
+    catch(exception)
+    {
+        console.error("Error occured while checking for existence of bid record = " + exception.message);
+
+        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
+        httpResponse.end("Error occured while checking for existence of bid record = " + exception.message);
+    }
+}
+
+
+function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
+{
+
+    try
+    {
+
         // Process the Incoming Request
         
         var bidRecordValues = '(' + inputBidRecord.AssetId + ',' +
