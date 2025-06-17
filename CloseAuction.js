@@ -1,5 +1,6 @@
 let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
 let InputValidatorModule = require("./HelperUtils/InputValidator.js");
+let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 
 
 function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
@@ -31,7 +32,7 @@ function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
                 throw error;
             }
 
-            console.log("Successfully connected to MySql Server");
+            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
 
             mySqlConnection.query( mySqlCloseAuctionQuery, (error, result) => {
 
@@ -44,7 +45,7 @@ function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
                 if( result.affectedRows === 1 )
                 {
 
-                    console.log("Successfully closed the auction through assets table ");
+                    LoggerUtilModule.logInformation("Successfully closed the auction through assets table ");
 
                     httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
                     httpResponse.end("Successfully closed the auction through assets table");
@@ -52,14 +53,14 @@ function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
                 else
                 {
 
-                    console.log("Bad Request...No Auction has gotten closed");
+                    LoggerUtilModule.logInformation("Bad Request...No Auction has gotten closed");
 
                     httpResponse.writeHead( 400, {'content-type' : 'text/plain'});    
                     httpResponse.end("Bad Request...No Auction has gotten closed");
                 }
 
             });
-            
+
         });
 
     }

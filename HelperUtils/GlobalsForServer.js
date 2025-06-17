@@ -1,20 +1,31 @@
 
-let hashGenerationSalt = 5;
+// Globals
 
-let customerRecordRequiredValues = [ "Name", "EmailAddress", "Address", "UserType", "City", "State", "Country", "Password", "PhoneNumber"];
+const hashGenerationSalt = 5;
+const bDebugInformation = true; 
 
-let assetRecordRequiredValues = [ "AssetType", "MinAuctionPrice", "Address", "Colony", "City", "State", "Country", "SellerCustomerId", 
+
+// Required values of Various Tables / client - server operations
+
+const customerRecordRequiredValues = [ "Name", "EmailAddress", "Address", "UserType", "City", "State", "Country", "Password", "PhoneNumber"];
+
+const assetRecordRequiredValues = [ "AssetType", "MinAuctionPrice", "Address", "Colony", "City", "State", "Country", "SellerCustomerId", 
     "ApprovalType", "AssetSize", "BuiltUpArea", "Status"];
 
-let bidRecordRequiredValues = [ "AssetId", "CustomerId", "BidPrice" ];
+const bidRecordRequiredValues = [ "AssetId", "CustomerId", "BidPrice" ];
 
-let retrieveAuctionsRequiredValues = [ "Status" ];
+const retrieveAuctionsRequiredValues = [ "Status" ];
 
-let closeAuctionRequiredValues = [ "AssetId" ];
+const closeAuctionRequiredValues = [ "AssetId" ];
 
-let userAuthRecordRequiredValues = [ "EmailAddress", "PasswordCode" ];
+const userAuthRecordRequiredValues = [ "EmailAddress", "PasswordCode" ];
 
-module.exports = {hashGenerationSalt, customerRecordRequiredValues, assetRecordRequiredValues, bidRecordRequiredValues,
-    retrieveAuctionsRequiredValues, closeAuctionRequiredValues, userAuthRecordRequiredValues, 
+const membershipRecordRequiredValues = [ "CustomerId", "MembershipType", "PaymentGateway", "PaymentType", "FeeAmount" ];
+
+
+// Module exports
+
+module.exports = {hashGenerationSalt, bDebugInformation, customerRecordRequiredValues, assetRecordRequiredValues, bidRecordRequiredValues,
+    retrieveAuctionsRequiredValues, closeAuctionRequiredValues, userAuthRecordRequiredValues, membershipRecordRequiredValues,
 };
 

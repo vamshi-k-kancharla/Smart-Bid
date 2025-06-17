@@ -1,6 +1,7 @@
 
 let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
 let InputValidatorModule = require("./HelperUtils/InputValidator.js");
+let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 
 
 function createAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
@@ -57,7 +58,7 @@ function checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, h
             'BuiltUpArea = "' + inputAssetRecord.BuiltUpArea + '" and ' +
             'Status = "' + inputAssetRecord.Status + '"';
 
-        console.log("Asset DB Record Existence Query = " + mySqlCheckAssetRecordExistence);
+        LoggerUtilModule.logInformation("Asset DB Record Existence Query = " + mySqlCheckAssetRecordExistence);
 
         mySqlConnection.connect( (error) => {
 
@@ -67,7 +68,7 @@ function checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, h
                 throw error;
             }
 
-            console.log("Successfully connected to MySql Server");
+            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
 
             mySqlConnection.query( mySqlCheckAssetRecordExistence, (error, result) => {
 
@@ -77,7 +78,7 @@ function checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, h
                     throw error;
                 }
 
-                console.log("Successfully retrieved the Record from Assets table...No Of Records = " + result.length);
+                LoggerUtilModule.logInformation("Successfully retrieved the Record from Assets table...No Of Records = " + result.length);
 
                 if( result.length == 0 )
                 {
@@ -128,12 +129,12 @@ function addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
         '"' + inputAssetRecord.BuiltUpArea + '",' +
         '"' + inputAssetRecord.Status + '")';
 
-        console.log("asset DB Record Values = " + assetRecordValues);
+        LoggerUtilModule.logInformation("asset DB Record Values = " + assetRecordValues);
 
         var mySqlAssetDBRecordAdd = 'INSERT INTO assets ( AssetType, MinAuctionPrice, Address, Colony, City, State, Country,' +
         'CurrentBidPrice, SellerCustomerId, ApprovalType, AssetSize, BuiltUpArea, Status ) Values ' + assetRecordValues;
 
-        console.log("Asset DB Record Query = " + mySqlAssetDBRecordAdd);
+        LoggerUtilModule.logInformation("Asset DB Record Query = " + mySqlAssetDBRecordAdd);
 
         mySqlConnection.connect( (error) => {
 
@@ -143,7 +144,7 @@ function addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
                 throw error;
             }
 
-            console.log("Successfully connected to MySql Server");
+            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
 
             mySqlConnection.query( mySqlAssetDBRecordAdd, (error, result) => {
 
@@ -152,7 +153,7 @@ function addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
                     console.error("Error occured while adding assets DB Record => " + error.message);
                 }
 
-                console.log("Successfully added the records to the DB " + result.affectedRows);
+                LoggerUtilModule.logInformation("Successfully added the records to the DB " + result.affectedRows);
 
                 httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
                 httpResponse.end("Successfully added the asset records to the DB " + result.affectedRows);

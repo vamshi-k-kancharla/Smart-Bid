@@ -2,6 +2,8 @@ let bCryptHashModule = require('bcryptjs');
 
 let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
 let InputValidatorModule = require("./HelperUtils/InputValidator.js");
+let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+
 
 
 function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpResponse)
@@ -27,8 +29,8 @@ function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpR
         let mySqlUserAuthReturnResults = 'Select CustomerId, Name, EmailAddress, PhoneNumber from customers where EmailAddress = "' + 
             inputCustomerRecord.EmailAddress + '"';
 
-        console.log("mySqlUserPasswordHashResult = " + mySqlUserPasswordHashResult);
-        console.log("mySqlUserAuthReturnResults = " + mySqlUserAuthReturnResults);
+        LoggerUtilModule.logInformation("mySqlUserPasswordHashResult = " + mySqlUserPasswordHashResult);
+        LoggerUtilModule.logInformation("mySqlUserAuthReturnResults = " + mySqlUserAuthReturnResults);
 
         mySqlConnection.connect( (error) => {
 
@@ -38,7 +40,7 @@ function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpR
                 throw error;
             }
 
-            console.log("Successfully connected to MySql Server");
+            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
 
             mySqlConnection.query( mySqlUserPasswordHashResult, (error, result) => {
 
@@ -48,7 +50,7 @@ function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpR
                     throw Error;
                 }
 
-                console.log("Successfully retrieved the password hash from Customer Table " + result[0].Password);
+                LoggerUtilModule.logInformation("Successfully retrieved the password hash from Customer Table " + result[0].Password);
 
                 let passwordCompare = bCryptHashModule.compareSync(atob(inputCustomerRecord.PasswordCode), result[0].Password);
 
@@ -63,7 +65,7 @@ function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpR
                             throw Error;
                         }
 
-                        console.log("Successfully retrieved the User auth details from customers table...No Of Records = " + result.length);
+                        LoggerUtilModule.logInformation("Successfully retrieved the User auth details from customers table...No Of Records = " + result.length);
 
                         httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
                         httpResponse.end(JSON.stringify(result));

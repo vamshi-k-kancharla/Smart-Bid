@@ -1,5 +1,6 @@
 let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
 let InputValidatorModule = require("./HelperUtils/InputValidator.js");
+let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 
 
 function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
@@ -53,7 +54,7 @@ function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpR
             'CustomerId = ' + inputBidRecord.CustomerId + ' and ' +
             'BidPrice = "' + inputBidRecord.BidPrice + '"';
 
-        console.log("Bid DB Record Existence Query = " + mySqlCheckBidRecordExistence);
+        LoggerUtilModule.logInformation("Bid DB Record Existence Query = " + mySqlCheckBidRecordExistence);
 
         mySqlConnection.connect( (error) => {
 
@@ -63,7 +64,7 @@ function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpR
                 throw error;
             }
 
-            console.log("Successfully connected to MySql Server");
+            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
 
             mySqlConnection.query( mySqlCheckBidRecordExistence, (error, result) => {
 
@@ -73,7 +74,7 @@ function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpR
                     throw error;
                 }
 
-                console.log("Successfully retrieved the Record from Bids table...No Of Records = " + result.length);
+                LoggerUtilModule.logInformation("Successfully retrieved the Record from Bids table...No Of Records = " + result.length);
 
                 if( result.length == 0 )
                 {
@@ -115,15 +116,15 @@ function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
         '' + inputBidRecord.CustomerId + ',' +
         '"' + inputBidRecord.BidPrice + '")';
 
-        console.log("bid DB Record Values = " + bidRecordValues);
+        LoggerUtilModule.logInformation("bid DB Record Values = " + bidRecordValues);
 
         var mySqlBidDBRecordAdd = 'INSERT INTO bids ( AssetId, CustomerId, BidPrice ) Values ' + bidRecordValues;
 
         var mySqlAssetsRecordUpdate = 'Update assets set CurrentBidPrice = '+ inputBidRecord.BidPrice + 
             ', BidderCustomerId = ' + inputBidRecord.CustomerId + ' where assetId = ' + inputBidRecord.AssetId;
 
-        console.log("Bid DB Record Query = " + mySqlBidDBRecordAdd);
-        console.log("Asset DB Record Update Query = " + mySqlAssetsRecordUpdate);
+        LoggerUtilModule.logInformation("Bid DB Record Query = " + mySqlBidDBRecordAdd);
+        LoggerUtilModule.logInformation("Asset DB Record Update Query = " + mySqlAssetsRecordUpdate);
 
         mySqlConnection.connect( (error) => {
 
@@ -133,7 +134,7 @@ function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
                 throw error;
             }
 
-            console.log("Successfully connected to MySql Server");
+            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
 
             mySqlConnection.beginTransaction( (error) => {
 
@@ -153,8 +154,8 @@ function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
                         throw error;
                     }
 
-                    console.log("Successfully added the bid records to the Bids Table " + result.affectedRows);
-                    console.log("Now updating the assets table with input values ");
+                    LoggerUtilModule.logInformation("Successfully added the bid records to the Bids Table " + result.affectedRows);
+                    LoggerUtilModule.logInformation("Now updating the assets table with input values ");
 
                     mySqlConnection.query( mySqlAssetsRecordUpdate, (error, result) => {
 
@@ -164,7 +165,7 @@ function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
                             throw error;
                         }
 
-                        console.log("Successfully upated the asset record => " + result.affectedRows);
+                        LoggerUtilModule.logInformation("Successfully upated the asset record => " + result.affectedRows);
 
                         mySqlConnection.commit( (error) => {
 

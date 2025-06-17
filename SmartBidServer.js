@@ -1,20 +1,24 @@
 
-let httpClientModule = require('http');
-let httpUrlModule = require('url');
+const httpClientModule = require('http');
+const httpUrlModule = require('url');
 
-let mySqlConnectionModule = require('./MySqlConnection.js');
-let customersRecordCRUDModule = require('./CustomersTableCRUD.js');
-let assetRecordCRUDModule = require('./AssetsTableCRUD.js');
-let bidRecordCRUDModule = require('./BidsTableCRUD.js');
-let userAuthenticationModule = require('./UserAuthentication.js');
-let retrieveAuctionsModule = require('./RetrieveAuctions.js');
-let closeAuctionModule = require('./CloseAuction.js');
+const mySqlConnectionModule = require('./MySqlConnection.js');
+const customersRecordCRUDModule = require('./CustomersTableCRUD.js');
+const assetRecordCRUDModule = require('./AssetsTableCRUD.js');
+const bidRecordCRUDModule = require('./BidsTableCRUD.js');
+const userAuthenticationModule = require('./UserAuthentication.js');
+const retrieveAuctionsModule = require('./RetrieveAuctions.js');
+const closeAuctionModule = require('./CloseAuction.js');
+const membershipRecordCRUDModule = require("./MembershipsTableCRUD.js");
+
+const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+
 
 
 httpClientModule.createServer( (httpRequest, httpResponse) =>
 {
-    console.log("============================================");
-    console.log("http Request received...");
+    LoggerUtilModule.logInformation("============================================");
+    LoggerUtilModule.logInformation("http Request received...");
 
     let queryParserPathName = httpUrlModule.parse(httpRequest.url, true).pathname;
     let mySqlConnection = mySqlConnectionModule.connectToMySqlDB();
@@ -24,7 +28,7 @@ httpClientModule.createServer( (httpRequest, httpResponse) =>
 
     if(queryParserPathName.indexOf("favicon.ico") != -1){
         
-        console.log("favicon input request received...Sending back the response");
+        LoggerUtilModule.logInformation("favicon input request received...Sending back the response");
         httpResponse.writeHead( 200, 
             {"content-type" : "text/plain"} );
         httpResponse.end("");
@@ -38,11 +42,11 @@ httpClientModule.createServer( (httpRequest, httpResponse) =>
 
         httpRequest.on( 'data', (dataChunk) => { 
             httpRequestBody += dataChunk;
-            console.log("Current Data chunk = " + dataChunk);
+            LoggerUtilModule.logInformation("Current Data chunk = " + dataChunk);
         });
 
         httpRequest.on( 'end', () => { 
-            console.log("Total Data chunk = " + httpRequestBody);
+            LoggerUtilModule.logInformation("Total Data chunk = " + httpRequestBody);
             processSmartBidInputPOSTRequests(queryParserPathName, JSON.parse(httpRequestBody), mySqlConnection, httpResponse);
         });
     }
@@ -60,7 +64,7 @@ httpClientModule.createServer( (httpRequest, httpResponse) =>
 function processSmartBidInputGETRequests(queryParserPathName, queryParserQueryData, mySqlConnection, httpResponse)
 {
 
-    console.log("pathName = " + queryParserPathName + "\n");
+    LoggerUtilModule.logInformation("pathName = " + queryParserPathName + "\n");
 
     switch(queryParserPathName)
     {
@@ -95,10 +99,16 @@ function processSmartBidInputGETRequests(queryParserPathName, queryParserQueryDa
 
             break;
 
+        case "/AddMembership" :
+
+            membershipRecordCRUDModule.createMembershipsDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
+
+            break;
+
         default:
 
             httpResponse.writeHead( 404, {"content-type" : "text/plain"} );
-            httpResponse.end();
+            httpResponse.end("Input Client request not found");
 
             break;
 
@@ -109,7 +119,7 @@ function processSmartBidInputGETRequests(queryParserPathName, queryParserQueryDa
 function processSmartBidInputPOSTRequests(queryParserPathName, authQueryInputJsonData, mySqlConnection, httpResponse)
 {
 
-    console.log("pathName = " + queryParserPathName + "\n");
+    LoggerUtilModule.logInformation("pathName = " + queryParserPathName + "\n");
 
     switch(queryParserPathName)
     {
@@ -123,7 +133,7 @@ function processSmartBidInputPOSTRequests(queryParserPathName, authQueryInputJso
         default:
 
             httpResponse.writeHead( 404, {"content-type" : "text/plain"} );
-            httpResponse.end();
+            httpResponse.end("Input Client request not found");
 
             break;
 

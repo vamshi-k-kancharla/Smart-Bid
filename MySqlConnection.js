@@ -1,5 +1,7 @@
 
 let mySqlModule = require('mysql2');
+let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+
 
 function connectToMySqlDB()
 {
@@ -17,7 +19,7 @@ function connectToMySqlDB()
 
         );
 
-        console.log("connecting to MySql Server");
+        LoggerUtilModule.logInformation("connecting to MySql Server");
 
         mySqlConnection.connect( (error) => {
 
@@ -27,13 +29,13 @@ function connectToMySqlDB()
                 throw error;
             }
 
-            console.log("Successfully connected to MySql Server");
+            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
         });
 
     }
     catch(exception)
     {
-        console.log("Error while connecting to mySql DB => " + exception.message);
+        LoggerUtilModule.logInformation("Error while connecting to mySql DB => " + exception.message);
         throw exception;
     }
 

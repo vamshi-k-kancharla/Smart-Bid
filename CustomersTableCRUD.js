@@ -2,6 +2,7 @@ let bCryptHashModule = require('bcryptjs');
 
 let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
 let InputValidatorModule = require("./HelperUtils/InputValidator.js");
+let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 
 
 function createCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse)
@@ -43,7 +44,7 @@ function checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomerRecord
         var mySqlCustomerDBRecordCheckUniqueness = 'select * from customers where EmailAddress = "' + inputCustomerRecord.EmailAddress + 
         '" or PhoneNumber = "' + inputCustomerRecord.PhoneNumber + '"';
 
-        console.log("Customer DB Record Uniqueness check Query = " + mySqlCustomerDBRecordCheckUniqueness);
+        LoggerUtilModule.logInformation("Customer DB Record Uniqueness check Query = " + mySqlCustomerDBRecordCheckUniqueness);
 
         mySqlConnection.connect( (error) => {
 
@@ -53,7 +54,7 @@ function checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomerRecord
                 throw error;
             }
 
-            console.log("Successfully connected to MySql Server");
+            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
 
             mySqlConnection.query( mySqlCustomerDBRecordCheckUniqueness, (error, result) => {
 
@@ -63,7 +64,7 @@ function checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomerRecord
                     throw error;
                 }
 
-                console.log("Successfully retrieved the Customers Record from customers table...No Of Records = " + result.length);
+                LoggerUtilModule.logInformation("Successfully retrieved the Customers Record from customers table...No Of Records = " + result.length);
 
                 if( result.length == 0 )
                 {
@@ -99,7 +100,7 @@ function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse
 
         // Process the Incoming Request
             
-        console.log("Hash Generation salt = " + bCryptHashModule.genSaltSync(GlobalsForServerModule.hashGenerationSalt));
+        LoggerUtilModule.logInformation("Hash Generation salt = " + bCryptHashModule.genSaltSync(GlobalsForServerModule.hashGenerationSalt));
 
         var customerRecordValues = '("' + inputCustomerRecord.Name + '",' +
         '"' + inputCustomerRecord.EmailAddress + '",' +
@@ -112,12 +113,12 @@ function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse
         bCryptHashModule.genSaltSync(GlobalsForServerModule.hashGenerationSalt)) + '",' +
         '' + inputCustomerRecord.PhoneNumber + ')';
 
-        console.log("customer DB Record Values = " + customerRecordValues);
+        LoggerUtilModule.logInformation("customer DB Record Values = " + customerRecordValues);
 
         var mySqlCustomerDBRecordAdd = 'INSERT INTO customers (Name , EmailAddress , Address , UserType , City , State , Country , ' +
         'Password , PhoneNumber ) Values ' + customerRecordValues;
 
-        console.log("Customer DB Record Query = " + mySqlCustomerDBRecordAdd);
+        LoggerUtilModule.logInformation("Customer DB Record Query = " + mySqlCustomerDBRecordAdd);
 
         mySqlConnection.connect( (error) => {
 
@@ -127,7 +128,7 @@ function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse
                 throw error;
             }
 
-            console.log("Successfully connected to MySql Server");
+            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
 
             mySqlConnection.query( mySqlCustomerDBRecordAdd, (error, result) => {
 
@@ -136,7 +137,7 @@ function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse
                     console.error("Error occured while adding customers DB Record => " + error.message);
                 }
 
-                console.log("Successfully added the customer records to the DB " + result.affectedRows);
+                LoggerUtilModule.logInformation("Successfully added the customer records to the DB " + result.affectedRows);
 
                 httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
                 httpResponse.end("Successfully added the customer records to the DB " + result.affectedRows);
