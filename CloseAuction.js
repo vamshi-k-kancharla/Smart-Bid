@@ -1,6 +1,7 @@
 let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
 let InputValidatorModule = require("./HelperUtils/InputValidator.js");
 let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
 
 function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
@@ -14,8 +15,8 @@ function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
             !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.closeAuctionRequiredValues) )
         {
 
-            httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
-            httpResponse.end("Bad request from client...One or more missing Close Auction Record Input values");
+            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad request from client...One or more missing Close Auction Record Input values");
 
             return;
         }
@@ -28,8 +29,10 @@ function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
 
             if(error)
             {
-                console.error("Error occured while connecting to mySql Server => " + error.message);
-                throw error;
+                handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+                    "Error occured while connecting to mySql server = " + error.message);
+
+                return;
             }
 
             LoggerUtilModule.logInformation("Successfully connected to MySql Server");
@@ -38,25 +41,25 @@ function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
 
                 if(error)
                 {
-                    console.error("Error occured while closing auction in assets table => " + error.message);
-                    throw Error;
+                    handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                        "Bad Request : Error occured while adding membership record to the DB => " + error.message);
+
+                    return;
                 }
 
                 if( result.affectedRows === 1 )
                 {
 
-                    LoggerUtilModule.logInformation("Successfully closed the auction through assets table ");
+                    handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
+                        "Successfully closed the auction through assets table ");
 
-                    httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
-                    httpResponse.end("Successfully closed the auction through assets table");
+                    return;
                 }
                 else
                 {
 
-                    LoggerUtilModule.logInformation("Bad Request...No Auction has gotten closed");
-
-                    httpResponse.writeHead( 400, {'content-type' : 'text/plain'});    
-                    httpResponse.end("Bad Request...No Auction has gotten closed");
+                    handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                        "Bad Request...No Auction has gotten closed ");
                 }
 
             });
@@ -67,10 +70,8 @@ function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
 
     catch(exception)
     {
-        console.error("Error occured while closing the auction => " + exception.message);
-
-        httpResponse.writeHead( 500, {'content-type' : 'text/plain'});
-        httpResponse.end("Auction closure failed. Please retry");
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while closing the auction => " + exception.message);
     }
 }
 

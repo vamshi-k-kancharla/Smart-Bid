@@ -1,6 +1,7 @@
-let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
-let InputValidatorModule = require("./HelperUtils/InputValidator.js");
-let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
+const InputValidatorModule = require("./HelperUtils/InputValidator.js");
+const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
 
 function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
@@ -14,9 +15,8 @@ function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
         if( !InputValidatorModule.validateUserInputObjectValue(inputBidRecord) ||
             !InputValidatorModule.validateUserInputObject(inputBidRecord, GlobalsForServerModule.bidRecordRequiredValues) )
         {
-
-            httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
-            httpResponse.end("Bad request from client...One or more missing Bid Record Input values");
+            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad request from client...One or more missing Bid Record Input values");
 
             return;
         }
@@ -27,18 +27,8 @@ function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 
     catch(exception)
     {
-        console.error("Error occured while adding bid record to the Table = " + exception.message);
-        
-        mySqlConnection.rollback( (error) => {
-
-            if(error)
-            {
-                console.error("Error occured while rolling back transaction for bids placement => " + error.message);
-            }
-        });
-
-        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
-        httpResponse.end("Error occured while adding bid record to the Table = " + exception.message);
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while adding bid record to the Table = " + exception.message);
     }
 }
 
@@ -60,8 +50,10 @@ function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpR
 
             if(error)
             {
-                console.error("Error occured while connecting to mySql Server => " + error.message);
-                throw error;
+                handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+                    "Error occured while connecting to mySql Server => " + error.message);
+
+                return;
             }
 
             LoggerUtilModule.logInformation("Successfully connected to MySql Server");
@@ -70,8 +62,10 @@ function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpR
 
                 if(error)
                 {
-                    console.error("Error occured while Querying Bids Record Table => " + error.message);
-                    throw error;
+                    handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                        "Error occured while Querying Bids Record Table => " + error.message);
+
+                    return;
                 }
 
                 LoggerUtilModule.logInformation("Successfully retrieved the Record from Bids table...No Of Records = " + result.length);
@@ -82,8 +76,8 @@ function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpR
                 }
                 else
                 {
-                    httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
-                    httpResponse.end("Bid Record with the given values already exists");
+                    handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                        "Bid Record with the given values already exists");
 
                     return;
                 }
@@ -96,10 +90,10 @@ function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpR
 
     catch(exception)
     {
-        console.error("Error occured while checking for existence of bid record = " + exception.message);
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while checking for existence of bid record = " + exception.message);
 
-        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
-        httpResponse.end("Error occured while checking for existence of bid record = " + exception.message);
+        return;
     }
 }
 
@@ -130,8 +124,10 @@ function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 
             if(error)
             {
-                console.error("Error occured while connecting to mySql Server => " + error.message);
-                throw error;
+                handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+                    "Error occured while connecting to mySql server = " + error.message);
+
+                return;
             }
 
             LoggerUtilModule.logInformation("Successfully connected to MySql Server");
@@ -140,8 +136,10 @@ function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 
                 if(error)
                 {
-                    console.error("Error occured while starting transaction for Bids placement => " + error.message);
-                    throw error;
+                    handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                        "Error occured while starting transaction for Bids placement => " + error.message);
+
+                    return;
                 }
 
                 console.error("DB Transaction has been successfully started");
@@ -150,8 +148,10 @@ function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 
                     if(error)
                     {
-                        console.error("Error occured while adding bids Table Record => " + error.message);
-                        throw error;
+                        handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                            "Error occured while adding bids Table Record => " + error.message);
+
+                        return;
                     }
 
                     LoggerUtilModule.logInformation("Successfully added the bid records to the Bids Table " + result.affectedRows);
@@ -161,8 +161,10 @@ function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 
                         if(error)
                         {
-                            console.error("Error occured while updating Assets table Record => " + error.message);
-                            throw error;
+                            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                                "Error occured while updating Assets table Record => " + error.message);
+
+                            return;
                         }
 
                         LoggerUtilModule.logInformation("Successfully upated the asset record => " + result.affectedRows);
@@ -171,12 +173,16 @@ function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 
                             if(error)
                             {
-                                console.error("Error occured while commiting transaction for bids placement => " + error.message);
-                                throw error;
+                                handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                                    "Error occured while commiting transaction for bids placement => " + error.message);
+
+                                return;
                             }
 
-                            httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
-                            httpResponse.end("Successfully placed the bid for current asset");
+                            handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
+                                "Successfully placed the bid for current asset");
+
+                            return;
                         });
                     
                     });
@@ -201,8 +207,10 @@ function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
             }
         });
 
-        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
-        httpResponse.end("Error occured while adding bid record to the Table = " + exception.message);
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while adding bid record to the Table = " + exception.message);
+
+        return;
     }
 }
 
