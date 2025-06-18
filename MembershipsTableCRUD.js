@@ -5,7 +5,7 @@ const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
 
-function createMembershipsDBRecord(mySqlConnection, inputMembershipRecord, httpResponse)
+async function createMembershipsDBRecord(mySqlConnection, inputMembershipRecord, httpResponse)
 {
 
     try
@@ -25,7 +25,7 @@ function createMembershipsDBRecord(mySqlConnection, inputMembershipRecord, httpR
 
         // Process the Incoming Request
 
-        addMembershipsDBRecord(mySqlConnection, inputMembershipRecord, httpResponse);
+        await addMembershipsDBRecord(mySqlConnection, inputMembershipRecord, httpResponse);
     }
 
     catch(exception)
@@ -36,7 +36,7 @@ function createMembershipsDBRecord(mySqlConnection, inputMembershipRecord, httpR
 }
 
 
-function addMembershipsDBRecord(mySqlConnection, inputMembershipRecord, httpResponse)
+async function addMembershipsDBRecord(mySqlConnection, inputMembershipRecord, httpResponse)
 {
 
     try
@@ -56,35 +56,20 @@ function addMembershipsDBRecord(mySqlConnection, inputMembershipRecord, httpResp
 
         LoggerUtilModule.logInformation("Membership DB Record Query = " + mySqlMembershipDBRecordAdd);
 
-        mySqlConnection.connect( (error) => {
+        let mySqlMembershipDBRecordAddResult = await mySqlConnection.execute( mySqlMembershipDBRecordAdd );
 
-            if(error)
-            {
-                handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
-                    "Error occured while connecting to mySql server = " + error.message);
+        if( mySqlMembershipDBRecordAddResult[0].affectedRows === 1 )
+        {
 
-                return;
-            }
+            handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
+                "Successfully added membership table record");
+        }
+        else
+        {
 
-            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
-
-            mySqlConnection.query( mySqlMembershipDBRecordAdd, (error, result) => {
-
-                if(error)
-                {
-                    handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
-                        "Bad Request : Error occured while adding membership record to the DB => " + error.message);
-
-                    return;
-                }
-
-                handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
-                    "Successfully added the membership records to the DB " + result.affectedRows);
-
-                return;
-            });
-
-        });
+            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad Request...wrong membership input add request ");
+        }
 
     }
 
@@ -92,8 +77,6 @@ function addMembershipsDBRecord(mySqlConnection, inputMembershipRecord, httpResp
     {
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while adding membership record to the DB...Caught exception => " + exception.message);
-
-        return;
     }
 }
 

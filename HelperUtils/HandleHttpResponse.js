@@ -22,6 +22,16 @@ function returnBadRequestHttpResponse(httpResponse, inputLogStr)
 
 }
 
+function returnNotFoundHttpResponse(httpResponse, inputLogStr)
+{
+
+    console.error(inputLogStr);
+
+    httpResponse.writeHead( 404, {"content-type" : "text/plain"} );
+    httpResponse.end(inputLogStr);
+
+}
+
 function returnServerFailureHttpResponse(httpResponse, inputLogStr)
 {
 
@@ -33,4 +43,4 @@ function returnServerFailureHttpResponse(httpResponse, inputLogStr)
 }
 
 
-module.exports = { returnSuccessHttpResponse, returnBadRequestHttpResponse, returnServerFailureHttpResponse };
+module.exports = { returnSuccessHttpResponse, returnBadRequestHttpResponse, returnNotFoundHttpResponse, returnServerFailureHttpResponse };

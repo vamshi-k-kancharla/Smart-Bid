@@ -12,131 +12,180 @@ const closeAuctionModule = require('./CloseAuction.js');
 const membershipRecordCRUDModule = require("./MembershipsTableCRUD.js");
 
 const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
 
 
-httpClientModule.createServer( (httpRequest, httpResponse) =>
+httpClientModule.createServer( async (httpRequest, httpResponse) =>
 {
-    LoggerUtilModule.logInformation("============================================");
-    LoggerUtilModule.logInformation("http Request received...");
+    try
+    {
 
-    let queryParserPathName = httpUrlModule.parse(httpRequest.url, true).pathname;
-    let mySqlConnection = mySqlConnectionModule.connectToMySqlDB();
+        LoggerUtilModule.logInformation("============================================");
+        LoggerUtilModule.logInformation("http Request received...");
 
-    httpResponse.setHeader("Access-Control-Allow-Origin", "*");
-    httpResponse.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        let queryParserPathName = httpUrlModule.parse(httpRequest.url, true).pathname;
 
-    if(queryParserPathName.indexOf("favicon.ico") != -1){
+        // Connect to MySQL DB
         
-        LoggerUtilModule.logInformation("favicon input request received...Sending back the response");
-        httpResponse.writeHead( 200, 
-            {"content-type" : "text/plain"} );
-        httpResponse.end("");
+        let mySqlConnection = await mySqlConnectionModule.connectToMySqlDB();
 
-        return;
+        if( mySqlConnection == null || mySqlConnection == undefined )
+        {
+
+            handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, "Unable to connect to MySQL DB...Bailing out");
+            return;
+        }
+
+        // Enable CORS Policy
+
+        httpResponse.setHeader("Access-Control-Allow-Origin", "*");
+        httpResponse.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
+        // Return back for Favicon Request
+
+        if(queryParserPathName.indexOf("favicon.ico") != -1){
+            
+            handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, "favicon input request received...Sending back the response");
+            return;
+        }
+
+        // Process POST Requests
+
+        if( httpRequest.method === 'POST' )
+        {
+            let httpRequestBody = '';
+
+            httpRequest.on( 'data', (dataChunk) => { 
+                httpRequestBody += dataChunk;
+                LoggerUtilModule.logInformation("Current Data chunk = " + dataChunk);
+            });
+
+            httpRequest.on( 'end', async () => { 
+
+                LoggerUtilModule.logInformation("Total Data chunk = " + httpRequestBody);
+
+                await processSmartBidInputPOSTRequests(queryParserPathName, JSON.parse(httpRequestBody), mySqlConnection, httpResponse);
+            });
+        }
+
+        // Process GET Requests
+
+        else 
+        {
+            let queryParserQueryData = httpUrlModule.parse(httpRequest.url, true).query;
+
+            await processSmartBidInputGETRequests(queryParserPathName, queryParserQueryData, mySqlConnection, httpResponse);
+        }
     }
-
-    if( httpRequest.method === 'POST' )
+    catch(exception)
     {
-        let httpRequestBody = '';
+        LoggerUtilModule.logInformation("Error while processing http input requests => " + exception.message);
 
-        httpRequest.on( 'data', (dataChunk) => { 
-            httpRequestBody += dataChunk;
-            LoggerUtilModule.logInformation("Current Data chunk = " + dataChunk);
-        });
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error while processing http input requests => " + exception.message);
 
-        httpRequest.on( 'end', () => { 
-            LoggerUtilModule.logInformation("Total Data chunk = " + httpRequestBody);
-            processSmartBidInputPOSTRequests(queryParserPathName, JSON.parse(httpRequestBody), mySqlConnection, httpResponse);
-        });
-    }
-
-    else 
-    {
-        let queryParserQueryData = httpUrlModule.parse(httpRequest.url, true).query;
-
-        processSmartBidInputGETRequests(queryParserPathName, queryParserQueryData, mySqlConnection, httpResponse);
     }
 
 }).listen(8000);
 
 
-function processSmartBidInputGETRequests(queryParserPathName, queryParserQueryData, mySqlConnection, httpResponse)
+async function processSmartBidInputGETRequests(queryParserPathName, queryParserQueryData, mySqlConnection, httpResponse)
 {
 
-    LoggerUtilModule.logInformation("pathName = " + queryParserPathName + "\n");
-
-    switch(queryParserPathName)
+    try
     {
 
-        case "/AddCustomer" :
+        LoggerUtilModule.logInformation("pathName = " + queryParserPathName + "\n");
 
-            customersRecordCRUDModule.createCustomersDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
+        switch(queryParserPathName)
+        {
 
-            break;
+            case "/AddCustomer" :
 
-        case "/AddAsset" :
+                await customersRecordCRUDModule.createCustomersDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
 
-            assetRecordCRUDModule.createAssetsDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
+                break;
 
-            break;
+            case "/AddAsset" :
 
-        case "/AddBid" :
+                await assetRecordCRUDModule.createAssetsDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
 
-            bidRecordCRUDModule.createBidsDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
+                break;
 
-            break;
+            case "/AddBid" :
 
-        case "/RetrieveAuctions" :
+                await bidRecordCRUDModule.createBidsDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
 
-            retrieveAuctionsModule.retrieveAuctions(mySqlConnection, queryParserQueryData, httpResponse);
+                break;
 
-            break;
+            case "/RetrieveAuctions" :
 
-        case "/CloseAuction" :
+                await retrieveAuctionsModule.retrieveAuctions(mySqlConnection, queryParserQueryData, httpResponse);
 
-            closeAuctionModule.closeAuction(mySqlConnection, queryParserQueryData, httpResponse);
+                break;
 
-            break;
+            case "/CloseAuction" :
 
-        case "/AddMembership" :
+                await closeAuctionModule.closeAuction(mySqlConnection, queryParserQueryData, httpResponse);
 
-            membershipRecordCRUDModule.createMembershipsDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
+                break;
 
-            break;
+            case "/AddMembership" :
 
-        default:
+                await membershipRecordCRUDModule.createMembershipsDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
 
-            httpResponse.writeHead( 404, {"content-type" : "text/plain"} );
-            httpResponse.end("Input Client request not found");
+                break;
 
-            break;
+            default:
 
+                handleHttpResponseModule.returnNotFoundHttpResponse(httpResponse, "Input Client request not found");
+
+                break;
+        }
+
+    }
+    catch(exception)
+    {
+        LoggerUtilModule.logInformation("Error while processing http GET input requests => " + exception.message);
+
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error while processing http GET input requests => " + exception.message);
     }
 
 }
 
-function processSmartBidInputPOSTRequests(queryParserPathName, authQueryInputJsonData, mySqlConnection, httpResponse)
+async function processSmartBidInputPOSTRequests(queryParserPathName, authQueryInputJsonData, mySqlConnection, httpResponse)
 {
-
-    LoggerUtilModule.logInformation("pathName = " + queryParserPathName + "\n");
-
-    switch(queryParserPathName)
+    try
     {
 
-        case "/AuthenticateUser" :
+        LoggerUtilModule.logInformation("pathName = " + queryParserPathName + "\n");
 
-            userAuthenticationModule.authenticateUserCredentials(mySqlConnection, authQueryInputJsonData, httpResponse);
+        switch(queryParserPathName)
+        {
 
-            break;
+            case "/AuthenticateUser" :
 
-        default:
+                await userAuthenticationModule.authenticateUserCredentials(mySqlConnection, authQueryInputJsonData, httpResponse);
 
-            httpResponse.writeHead( 404, {"content-type" : "text/plain"} );
-            httpResponse.end("Input Client request not found");
+                break;
 
-            break;
+            default:
 
+                handleHttpResponseModule.returnNotFoundHttpResponse(httpResponse, "Input Client request not found");
+
+                break;
+
+        }
+
+    }
+    catch(exception)
+    {
+        LoggerUtilModule.logInformation("Error while processing http POST input requests => " + exception.message);
+
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error while processing http POST input requests => " + exception.message);
     }
 
 }

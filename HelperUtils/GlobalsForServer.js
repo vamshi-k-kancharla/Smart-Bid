@@ -1,4 +1,13 @@
 
+
+const mySqlConnectionDBDetails = {
+                host : "localhost",
+                user : "root",
+                password : "Abcde_12345",
+                database: "smartauctiondb"
+            };
+
+
 // Globals
 
 const hashGenerationSalt = 5;
@@ -25,7 +34,7 @@ const membershipRecordRequiredValues = [ "CustomerId", "MembershipType", "Paymen
 
 // Module exports
 
-module.exports = {hashGenerationSalt, bDebugInformation, customerRecordRequiredValues, assetRecordRequiredValues, bidRecordRequiredValues,
+module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformation, customerRecordRequiredValues, assetRecordRequiredValues, bidRecordRequiredValues,
     retrieveAuctionsRequiredValues, closeAuctionRequiredValues, userAuthRecordRequiredValues, membershipRecordRequiredValues,
 };
 

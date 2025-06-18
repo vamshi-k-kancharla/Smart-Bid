@@ -1,42 +1,25 @@
 
-let mySqlModule = require('mysql2');
-let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const mySqlModule = require('mysql2/promise');
+
+const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const GlobalsForServiceModule = require("./HelperUtils/GlobalsForServer.js");
 
 
-function connectToMySqlDB()
+async function connectToMySqlDB()
 {
     let mySqlConnection;
 
     try
     {
-        mySqlConnection = mySqlModule.createConnection(
-            {
-                host : "localhost",
-                user : "root",
-                password : "Abcde_12345",
-                database: "smartauctiondb"
-            }
-
-        );
-
         LoggerUtilModule.logInformation("connecting to MySql Server");
 
-        mySqlConnection.connect( (error) => {
-
-            if(error)
-            {
-                console.error("Error occured while connecting to mySql Server => " + error.message);
-                throw error;
-            }
-
-            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
-        });
+        mySqlConnection = await mySqlModule.createConnection(GlobalsForServiceModule.mySqlConnectionDBDetails);
+        LoggerUtilModule.logInformation("Successfully connected to MySql Server");
 
     }
     catch(exception)
     {
         LoggerUtilModule.logInformation("Error while connecting to mySql DB => " + exception.message);
-        throw exception;
     }
 
     return mySqlConnection;
