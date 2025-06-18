@@ -1,10 +1,11 @@
+
 const GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
 const InputValidatorModule = require("./HelperUtils/InputValidator.js");
 const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
 
-function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
+async function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 {
 
     try
@@ -21,7 +22,7 @@ function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
             return;
         }
 
-        checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpResponse);
+        await checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpResponse);
 
     }
 
@@ -32,7 +33,7 @@ function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
     }
 }
 
-function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpResponse)
+async function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpResponse)
 {
 
     try
@@ -46,59 +47,32 @@ function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord, httpR
 
         LoggerUtilModule.logInformation("Bid DB Record Existence Query = " + mySqlCheckBidRecordExistence);
 
-        mySqlConnection.connect( (error) => {
+        let mySqlCheckBidRecordResult = await mySqlConnection.execute( mySqlCheckBidRecordExistence );
 
-            if(error)
-            {
-                handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
-                    "Error occured while connecting to mySql Server => " + error.message);
+        LoggerUtilModule.logInformation("Successfully retrieved the Record from Bids table...No Of Records = " + 
+            mySqlCheckBidRecordResult[0].length);
 
-                return;
-            }
+        if( mySqlCheckBidRecordResult[0].length == 0 )
+        {
+            await addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse);
+        }
+        else
+        {
+            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bid Record with the given values already exists");
 
-            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
-
-            mySqlConnection.query( mySqlCheckBidRecordExistence, (error, result) => {
-
-                if(error)
-                {
-                    handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
-                        "Error occured while Querying Bids Record Table => " + error.message);
-
-                    return;
-                }
-
-                LoggerUtilModule.logInformation("Successfully retrieved the Record from Bids table...No Of Records = " + result.length);
-
-                if( result.length == 0 )
-                {
-                    addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse);
-                }
-                else
-                {
-                    handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
-                        "Bid Record with the given values already exists");
-
-                    return;
-                }
-
-            });
-
-        });
-
+        }
     }
 
     catch(exception)
     {
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while checking for existence of bid record = " + exception.message);
-
-        return;
     }
 }
 
 
-function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
+async function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 {
 
     try
@@ -115,102 +89,54 @@ function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
         var mySqlBidDBRecordAdd = 'INSERT INTO bids ( AssetId, CustomerId, BidPrice ) Values ' + bidRecordValues;
 
         var mySqlAssetsRecordUpdate = 'Update assets set CurrentBidPrice = '+ inputBidRecord.BidPrice + 
-            ', BidderCustomerId = ' + inputBidRecord.CustomerId + ' where assetId = ' + inputBidRecord.AssetId;
+            ', BidderCustomerId = ' + inputBidRecord.CustomerId + ' where Status = "open" and assetId = ' + inputBidRecord.AssetId +
+            ' and CAST(MinAuctionPrice as SIGNED) < ' + inputBidRecord.BidPrice +
+            ' and CAST(CurrentBidPrice as SIGNED) < ' + inputBidRecord.BidPrice;
 
         LoggerUtilModule.logInformation("Bid DB Record Query = " + mySqlBidDBRecordAdd);
         LoggerUtilModule.logInformation("Asset DB Record Update Query = " + mySqlAssetsRecordUpdate);
 
-        mySqlConnection.connect( (error) => {
+        await mySqlConnection.beginTransaction();
 
-            if(error)
-            {
-                handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
-                    "Error occured while connecting to mySql server = " + error.message);
+        let mySqlBidDBRecordAddResult = await mySqlConnection.execute( mySqlBidDBRecordAdd );
 
-                return;
-            }
+        if( mySqlBidDBRecordAddResult[0].affectedRows == 0 )
+        {
 
-            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
+            LoggerUtilModule.logInformation("Error occured while adding bids table record ");
 
-            mySqlConnection.beginTransaction( (error) => {
+            throw new Error("Error occured while adding bids Table Record ");
+        }
 
-                if(error)
-                {
-                    handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
-                        "Error occured while starting transaction for Bids placement => " + error.message);
+        LoggerUtilModule.logInformation("Successfully added the bid records to the Bids Table " + 
+            mySqlBidDBRecordAddResult[0].affectedRows);
+        LoggerUtilModule.logInformation("Now updating the assets table with input values ");
 
-                    return;
-                }
+        let mySqlAssetDBUpdateRecordResult = await mySqlConnection.execute( mySqlAssetsRecordUpdate );
 
-                console.error("DB Transaction has been successfully started");
+        if( mySqlAssetDBUpdateRecordResult[0].affectedRows == 0 )
+        {
 
-                mySqlConnection.query( mySqlBidDBRecordAdd, (error, result) => {
+            LoggerUtilModule.logInformation("Error occured while updating assets Table Record ");
 
-                    if(error)
-                    {
-                        handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
-                            "Error occured while adding bids Table Record => " + error.message);
+            throw new Error("Error occured while updating assets Table Record ");
+        }
 
-                        return;
-                    }
+        LoggerUtilModule.logInformation("Successfully upated the asset record => " + mySqlAssetDBUpdateRecordResult[0].affectedRows);
 
-                    LoggerUtilModule.logInformation("Successfully added the bid records to the Bids Table " + result.affectedRows);
-                    LoggerUtilModule.logInformation("Now updating the assets table with input values ");
+        await mySqlConnection.commit();
 
-                    mySqlConnection.query( mySqlAssetsRecordUpdate, (error, result) => {
-
-                        if(error)
-                        {
-                            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
-                                "Error occured while updating Assets table Record => " + error.message);
-
-                            return;
-                        }
-
-                        LoggerUtilModule.logInformation("Successfully upated the asset record => " + result.affectedRows);
-
-                        mySqlConnection.commit( (error) => {
-
-                            if(error)
-                            {
-                                handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
-                                    "Error occured while commiting transaction for bids placement => " + error.message);
-
-                                return;
-                            }
-
-                            handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
-                                "Successfully placed the bid for current asset");
-
-                            return;
-                        });
-                    
-                    });
-
-                });
-
-            });
-
-        });
-
+        handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
+            "Successfully placed the bid for current asset");
     }
 
     catch(exception)
     {
-        console.error("Error occured while adding bid record to the Table = " + exception.message);
-        
-        mySqlConnection.rollback( (error) => {
-
-            if(error)
-            {
-                console.error("Error occured while rolling back transaction for bids placement => " + error.message);
-            }
-        });
+        mySqlConnection.rollback().catch( innerException => {
+            "Error occured while rolling back transaction for bids placement => " + innerException.message});
 
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while adding bid record to the Table = " + exception.message);
-
-        return;
     }
 }
 

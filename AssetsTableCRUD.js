@@ -1,10 +1,11 @@
 
-let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
-let InputValidatorModule = require("./HelperUtils/InputValidator.js");
-let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
+const InputValidatorModule = require("./HelperUtils/InputValidator.js");
+const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const HandleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
 
-function createAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
+async function createAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
 {
 
     try
@@ -16,28 +17,27 @@ function createAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
             !InputValidatorModule.validateUserInputObject(inputAssetRecord, GlobalsForServerModule.assetRecordRequiredValues) )
         {
 
-            httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
-            httpResponse.end("Bad request from client...One or more missing Asset Record Input values");
+            HandleHttpResponseModule.returnBadRequestHttpResponse( httpResponse, 
+                "Bad request from client...One or more missing Asset Record Input values" );
 
             return;
         }
 
         // Process the Incoming Request
 
-        checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, httpResponse);
+        await checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, httpResponse);
     }
 
     catch(exception)
     {
-        console.error("Error occured while adding asset record to the DB = " + exception.message);
 
-        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
-        httpResponse.end("Error occured while adding asset record to the DB = " + exception.message);
+        HandleHttpResponseModule.returnServerFailureHttpResponse( httpResponse, 
+            "Error occured while adding asset record to the DB = " + exception.message );
     }
 }
 
 
-function checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, httpResponse)
+async function checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, httpResponse)
 {
 
     try
@@ -60,55 +60,33 @@ function checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, h
 
         LoggerUtilModule.logInformation("Asset DB Record Existence Query = " + mySqlCheckAssetRecordExistence);
 
-        mySqlConnection.connect( (error) => {
+        let assetRecordCheckResult = await mySqlConnection.execute( mySqlCheckAssetRecordExistence ); 
 
-            if(error)
-            {
-                console.error("Error occured while connecting to mySql Server => " + error.message);
-                throw error;
-            }
+        LoggerUtilModule.logInformation("Successfully retrieved the Record from Assets table...No Of Records = " + 
+            assetRecordCheckResult[0].length);
 
-            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
-
-            mySqlConnection.query( mySqlCheckAssetRecordExistence, (error, result) => {
-
-                if(error)
-                {
-                    console.error("Error occured while Querying Assets Record Table => " + error.message);
-                    throw error;
-                }
-
-                LoggerUtilModule.logInformation("Successfully retrieved the Record from Assets table...No Of Records = " + result.length);
-
-                if( result.length == 0 )
-                {
-                    addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse);
-                }
-                else
-                {
-                    httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
-                    httpResponse.end("Asset Record with the given values already exists");
-
-                    return;
-                }
-
-            });
-
-        });
+        if( assetRecordCheckResult[0].length == 0 )
+        {
+            await addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse);
+        }
+        else
+        {
+            HandleHttpResponseModule.returnBadRequestHttpResponse( httpResponse, 
+                "Asset Record with the given values already exists" );
+        }
 
     }
 
     catch(exception)
     {
-        console.error("Error occured while checking for existence of asset record = " + exception.message);
 
-        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
-        httpResponse.end("Error occured while checking for existence of asset record = " + exception.message);
+        HandleHttpResponseModule.returnServerFailureHttpResponse( httpResponse, 
+            "Error occured while checking for existence of asset record = " + exception.message );
     }
 }
 
 
-function addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
+async function addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
 {
 
     try
@@ -136,39 +114,28 @@ function addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
 
         LoggerUtilModule.logInformation("Asset DB Record Query = " + mySqlAssetDBRecordAdd);
 
-        mySqlConnection.connect( (error) => {
+        let mySqlAddAssetRecordResult = await mySqlConnection.execute( mySqlAssetDBRecordAdd ); 
 
-            if(error)
-            {
-                console.error("Error occured while connecting to mySql Server => " + error.message);
-                throw error;
-            }
+        if( mySqlAddAssetRecordResult[0].affectedRows == 1 )
+        {
 
-            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
+            HandleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
+                "Successfully added the asset record to the DB ");
+        }
+        else
+        {
 
-            mySqlConnection.query( mySqlAssetDBRecordAdd, (error, result) => {
-
-                if(error)
-                {
-                    console.error("Error occured while adding assets DB Record => " + error.message);
-                }
-
-                LoggerUtilModule.logInformation("Successfully added the records to the DB " + result.affectedRows);
-
-                httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
-                httpResponse.end("Successfully added the asset records to the DB " + result.affectedRows);
-            });
-
-        });
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Couldn't add asset DB Record to the required table");
+        }
 
     }
 
     catch(exception)
     {
-        console.error("Error occured while adding asset record to the DB = " + exception.message);
 
-        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
-        httpResponse.end("Error occured while adding asset record to the DB = " + exception.message);
+        HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while adding asset record to the DB = " + exception.message);
     }
 }
 

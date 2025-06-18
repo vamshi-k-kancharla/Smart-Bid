@@ -1,12 +1,12 @@
-let bCryptHashModule = require('bcryptjs');
+const bCryptHashModule = require('bcryptjs');
 
-let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
-let InputValidatorModule = require("./HelperUtils/InputValidator.js");
-let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
+const InputValidatorModule = require("./HelperUtils/InputValidator.js");
+const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const HandleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
 
-
-function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpResponse)
+async function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpResponse)
 {
     try
     {
@@ -17,10 +17,11 @@ function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpR
             !InputValidatorModule.validateUserInputObject(inputCustomerRecord, GlobalsForServerModule.userAuthRecordRequiredValues) )
         {
 
-            httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
-            httpResponse.end("Bad request from client...One or more missing User Authentication Record Input values");
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad request from client...One or more missing User Authentication Record Input values");
 
             return;
+
         }
 
         // Process the Incoming Request
@@ -32,66 +33,53 @@ function authenticateUserCredentials(mySqlConnection, inputCustomerRecord, httpR
         LoggerUtilModule.logInformation("mySqlUserPasswordHashResult = " + mySqlUserPasswordHashResult);
         LoggerUtilModule.logInformation("mySqlUserAuthReturnResults = " + mySqlUserAuthReturnResults);
 
-        mySqlConnection.connect( (error) => {
+        let mySqlPasswordRetrieveResult = await mySqlConnection.execute( mySqlUserPasswordHashResult );
 
-            if(error)
+        LoggerUtilModule.logInformation("Successfully retrieved the password hash from Customer Table " + 
+            mySqlPasswordRetrieveResult[0][0].Password);
+
+        let passwordCompare = bCryptHashModule.compareSync(atob(inputCustomerRecord.PasswordCode), 
+            mySqlPasswordRetrieveResult[0][0].Password);
+
+        if (passwordCompare)
+        {
+
+            LoggerUtilModule.logInformation( "Returned password matched with that of entered password" );
+
+            let myPasswordRetrieveQueryResults = await mySqlConnection.execute( mySqlUserAuthReturnResults );
+
+            if( myPasswordRetrieveQueryResults[0].length == 1 )
             {
-                console.error("Error occured while connecting to mySql Server => " + error.message);
-                throw error;
+
+                LoggerUtilModule.logInformation("Successfully retrieved the User auth details from customers table...No Of Records = " + 
+                    myPasswordRetrieveQueryResults[0].length);
+
+                httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
+                httpResponse.end(JSON.stringify(myPasswordRetrieveQueryResults[0]));
             }
+            else
+            {
 
-            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
+                HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                    "Couldn't retrieve auth details for the given email address");
+            }
+        }
 
-            mySqlConnection.query( mySqlUserPasswordHashResult, (error, result) => {
+        else
+        {
 
-                if(error)
-                {
-                    console.error("Error occured while retrieving password Hash from customers Table => " + error.message);
-                    throw Error;
-                }
-
-                LoggerUtilModule.logInformation("Successfully retrieved the password hash from Customer Table " + result[0].Password);
-
-                let passwordCompare = bCryptHashModule.compareSync(atob(inputCustomerRecord.PasswordCode), result[0].Password);
-
-                if (passwordCompare)
-                {
-
-                    mySqlConnection.query( mySqlUserAuthReturnResults, (error, result) => {
-
-                        if(error)
-                        {
-                            console.error("Error occured while retrieving User Auth details from customers table => " + error.message);
-                            throw Error;
-                        }
-
-                        LoggerUtilModule.logInformation("Successfully retrieved the User auth details from customers table...No Of Records = " + result.length);
-
-                        httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
-                        httpResponse.end(JSON.stringify(result));
-                    });
-
-                }
-                else
-                {
-                    console.error("passwords didn't match....bailing out with unauthorized error");
-
-                    httpResponse.writeHead( 401, {'content-type' : 'text/plain'});
-                    httpResponse.end("User Authentication failed ");
-                }
-
-            });
-
-        });
+            HandleHttpResponseModule.returnUnauthorizedHttpResponse(httpResponse, 
+                "passwords didn't match....bailing out with unauthorized error");
+        }
 
     }
 
     catch(exception)
     {
-        console.error("Error occured while Authenticating user = " + exception.message);
 
-        httpResponse.writeHead( 401, {'content-type' : 'text/plain'});
-        httpResponse.end("Error occured while Authenticating user = " + exception.message);
+        HandleHttpResponseModule.returnUnauthorizedHttpResponse(httpResponse, 
+            "Error occured while Authenticating user = " + exception.message);
+
     }
 }
 

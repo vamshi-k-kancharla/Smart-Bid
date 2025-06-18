@@ -42,5 +42,15 @@ function returnServerFailureHttpResponse(httpResponse, inputLogStr)
 
 }
 
+function returnUnauthorizedHttpResponse(httpResponse, inputLogStr)
+{
 
-module.exports = { returnSuccessHttpResponse, returnBadRequestHttpResponse, returnNotFoundHttpResponse, returnServerFailureHttpResponse };
+    console.error(inputLogStr);
+
+    httpResponse.writeHead( 401, {"content-type" : "text/plain"} );
+    httpResponse.end(inputLogStr);
+
+}
+
+module.exports = { returnSuccessHttpResponse, returnBadRequestHttpResponse, returnNotFoundHttpResponse, 
+    returnServerFailureHttpResponse, returnUnauthorizedHttpResponse };

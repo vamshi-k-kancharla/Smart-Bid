@@ -1,11 +1,12 @@
-let bCryptHashModule = require('bcryptjs');
+const bCryptHashModule = require('bcryptjs');
 
-let GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
-let InputValidatorModule = require("./HelperUtils/InputValidator.js");
-let LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
+const InputValidatorModule = require("./HelperUtils/InputValidator.js");
+const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
+const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
 
-function createCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse)
+async function createCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse)
 {
     try
     {
@@ -15,27 +16,26 @@ function createCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpRespo
             !InputValidatorModule.validateUserInputObject(inputCustomerRecord, GlobalsForServerModule.customerRecordRequiredValues) )
         {
 
-            httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
-            httpResponse.end("Bad request from client...One or more missing User Record Input values");
+            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad request from client...One or more missing User Record Input values");
 
             return;
         }
 
         // Validate the uniqueness of EmailAddress & Phone Number
 
-        checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomerRecord, httpResponse );
+        await checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomerRecord, httpResponse );
     }
 
     catch(exception)
     {
-        console.error("Error occured while adding customer record to the DB = " + exception.message);
 
-        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
-        httpResponse.end("Error occured while adding customer record to the DB = " + exception.message);
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while adding customer record to the DB = " + exception.message);
     }
 }
 
-function checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomerRecord, httpResponse)
+async function checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomerRecord, httpResponse)
 {
     try
     {
@@ -46,54 +46,33 @@ function checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomerRecord
 
         LoggerUtilModule.logInformation("Customer DB Record Uniqueness check Query = " + mySqlCustomerDBRecordCheckUniqueness);
 
-        mySqlConnection.connect( (error) => {
+        let customersUniqueCheckResult = await mySqlConnection.execute( mySqlCustomerDBRecordCheckUniqueness );
 
-            if(error)
-            {
-                console.error("Error occured while connecting to mySql Server => " + error.message);
-                throw error;
-            }
+        LoggerUtilModule.logInformation("Successfully retrieved the Customers Record from customers table...No Of Records = " + 
+            customersUniqueCheckResult[0].length);
 
-            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
+        if( customersUniqueCheckResult[0].length == 0 )
+        {
+            await addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse);
+        }
+        else
+        {
 
-            mySqlConnection.query( mySqlCustomerDBRecordCheckUniqueness, (error, result) => {
-
-                if(error)
-                {
-                    console.error("Error occured while Querying customers Record Table => " + error.message);
-                    throw error;
-                }
-
-                LoggerUtilModule.logInformation("Successfully retrieved the Customers Record from customers table...No Of Records = " + result.length);
-
-                if( result.length == 0 )
-                {
-                    addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse);
-                }
-                else
-                {
-                    httpResponse.writeHead( 400, {"content-type" : "text/plain"} );
-                    httpResponse.end("Customer Record with the given email address/phone number already exists");
-
-                    return;
-                }
-
-            });
-
-        });
+            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Customer Record with the given email address/phone number already exists");
+        }
 
     }
 
     catch(exception)
     {
-        console.error("Error occured while Querying for customer record = " + exception.message);
 
-        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
-        httpResponse.end("Error occured while checking the uniqueness of Customer Record");
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while Querying for customer record = " + exception.message);
     }
 }
 
-function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse)
+async function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse)
 {
     try
     {
@@ -120,39 +99,27 @@ function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse
 
         LoggerUtilModule.logInformation("Customer DB Record Query = " + mySqlCustomerDBRecordAdd);
 
-        mySqlConnection.connect( (error) => {
+        let mySqlCustomersAddRecord = await mySqlConnection.execute( mySqlCustomerDBRecordAdd );
 
-            if(error)
-            {
-                console.error("Error occured while connecting to mySql Server => " + error.message);
-                throw error;
-            }
+        if( mySqlCustomersAddRecord[0].affectedRows == 1 )
+        {
 
-            LoggerUtilModule.logInformation("Successfully connected to MySql Server");
+            handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
+                "Successfully added the customer records to the DB ");
+        }
+        else
+        {
 
-            mySqlConnection.query( mySqlCustomerDBRecordAdd, (error, result) => {
-
-                if(error)
-                {
-                    console.error("Error occured while adding customers DB Record => " + error.message);
-                }
-
-                LoggerUtilModule.logInformation("Successfully added the customer records to the DB " + result.affectedRows);
-
-                httpResponse.writeHead( 200, {"content-type" : "text/plain"} );
-                httpResponse.end("Successfully added the customer records to the DB " + result.affectedRows);
-            });
-
-        });
+            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Couldn't add Customers DB Record to the required table");
+        }
 
     }
 
     catch(exception)
     {
-        console.error("Error occured while adding customer record to the DB = " + exception.message);
-
-        httpResponse.writeHead( 500, {"content-type" : "text/plain"} );
-        httpResponse.end("Error occured while adding customer record to the DB = " + exception.message);
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while adding customer record to the DB = " + exception.message);
     }
 }
 
