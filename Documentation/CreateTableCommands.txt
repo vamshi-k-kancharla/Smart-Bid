@@ -1,0 +1,94 @@
+==================================Customers Table================================================================================================================
+
+CustomerId INT AUTO_INCREMENT PRIMARY KEY, Name VARCHAR(255), EmailAddress VARCHAR(255), Address VARCHAR(255), UserType VARCHAR(255), City VARCHAR(255), State VARCHAR(255), Country VARCHAR(255), Password VARCHAR(255), PhoneNumber VARCHAR(255), NoOfBids INT, NoOfListings INT
+
+
+INSERT INTO customers (Name , EmailAddress , Address , UserType , City , State , Country , Password , PhoneNumber , NoOfBids , NoOfListings ) Values ( "Vamshi", vamsikris.83@gmail.com, Hyderabad, Seller, Hyderabad, Telangana, India, Nothing, 7306004129, 5, 10 )
+
+
+http://127.0.0.1:8000/AddCustomer?Name=Hari&EmailAddress=hari.kancharla@gmail.com&Address=SadashivaHeavens&UserType=Seller&City=Hyderabad&State=Telangana&Country=India&Password=usual&PhoneNumber=9000001034&NoOfBids=10&NoOfListings=20
+
+http://127.0.0.1:8000/AddCustomer?Name=Jalandar&EmailAddress=jalandar.kandala@gmail.com&Address=SadashivaHeavens&UserType=Seller&City=Hyderabad&State=Telangana&Country=India&Password=usual&PhoneNumber=9000001035&NoOfBids=15&NoOfListings=20
+
+http://127.0.0.1:8000/AddCustomer?Name=Harsha&EmailAddress=harsha.gajibhimkar@gmail.com&Address=SadashivaHeavens&UserType=Seller&City=Hyderabad&State=Telangana&Country=India&Password=usual&PhoneNumber=9000001036&NoOfBids=15&NoOfListings=25
+
+http://127.0.0.1:8000/AddCustomer?Name=Mahesh&EmailAddress=mahesh.pedagani@gmail.com&Address=SadashivaHeavens&UserType=Seller&City=Hyderabad&State=Telangana&Country=India&Password=usual&PhoneNumber=9000001037&NoOfBids=15&NoOfListings=25
+
+http://127.0.0.1:8000/AddCustomer?Name=Upendar&EmailAddress=upendar.kancharla@gmail.com&Address=SadashivaHeavens&UserType=Seller&City=Hyderabad&State=Telangana&Country=India&Password=usual&PhoneNumber=9000001038&NoOfBids=15&NoOfListings=30
+
+http://127.0.0.1:8000/AddCustomer?Name=mamatha&EmailAddress=mamatha.danda@gmail.com&Address=bangalore&UserType=buyer&City=bangalore&State=karnataka&Country=india&Password=Abcde_12345&PhoneNumber=300004059
+
+
+==================================Assets Table================================================================================================================
+
+AssetId INT AUTO_INCREMENT PRIMARY KEY, AssetType VARCHAR(255), MinAuctionPrice VARCHAR(255), Address VARCHAR(255), Colony VARCHAR(255), City VARCHAR(255), State VARCHAR(255), Country VARCHAR(255), CurrentBidPrice VARCHAR(255), BidderCustomerId INT, SellerCustomerId INT, ApprovalType VARCHAR(255), AssetSize VARCHAR(255), BuiltUpArea VARCHAR(255), Status VARCHAR(255)
+
+
+INSERT INTO assets ( AssetType, MinAuctionPrice, Address, Colony, City, State, Country, CurrentBidPrice, BidderCustomerId, SellerCustomerId, ApprovalType, AssetSize, BuiltUpArea, Status ) Values ( "Flat", 1000000, "AparnaSerenePark", "Masjid Banda", "Hyderabad", "Telangana", "India", 1500000, 2, 4, "HMDA", "100 Sq Yards", "1850 SFT", "Open" )
+
+
+http://127.0.0.1:8000/AddAsset?AssetType=Flat&MinAuctionPrice=1000000&Address=SadashivaHeavens&Colony=PeddaAmberpet&City=Hyderabad&State=Telangana&Country=India&CurrentBidPrice=1800000&BidderCustomerId=15&SellerCustomerId=10&ApprovalType=HDFC&AssetSize=200 SqYards&BuiltUpArea=2000SFT&Status=open
+
+http://127.0.0.1:8000/AddAsset?AssetType=Villa&MinAuctionPrice=10000000&Address=SadashivaHeavens&Colony=PeddaAmberpet&City=Hyderabad&State=Telangana&Country=India&CurrentBidPrice=18000000&BidderCustomerId=15&SellerCustomerId=10&ApprovalType=HDFC&AssetSize=200 SqYards&BuiltUpArea=2000SFT&Status=open
+
+
+==================================Bids Table================================================================================================================
+
+BidId INT AUTO_INCREMENT PRIMARY KEY, AssetId INT, CustomerId INT, BidPrice VARCHAR(255)
+
+
+INSERT INTO bids ( AssetId, CustomerId, BidPrice ) Values ( 15, 5, 20000000 )
+
+
+http://127.0.0.1:8000/AddBid?AssetId=15&CustomerId=10&BidPrice=20000000
+
+
+
+==================================Membership Table==========================================================================================================================================
+
+MembershipId INT AUTO_INCREMENT PRIMARY KEY, CustomerId INT, MembershipType VARCHAR(255), PaymentGateway VARCHAR(255), PaymentType VARCHAR(255), FeeAmount VARCHAR(255)
+
+
+http://127.0.0.1:8000/AddMembership?CustomerId=15&MembershipType=Level_1&PaymentGateway=Stripe&PaymentType=VISA Credit Card&FeeAmount=2000
+
+
+
+
+
+==================================Final Queries==========================================================================================================================================
+
+http://127.0.0.1:8000/AddCustomer?Name=Upendar&EmailAddress=upendar.kancharla@gmail.com&Address=SadashivaHeavens&UserType=Seller&City=Hyderabad&State=Telangana&Country=India&Password=usual&PhoneNumber=9000001038&NoOfBids=15&NoOfListings=30
+
+http://127.0.0.1:8000/AddAsset?AssetType=Villa&MinAuctionPrice=10000000&Address=SadashivaHeavens&Colony=PeddaAmberpet&City=Hyderabad&State=Telangana&Country=India&CurrentBidPrice=18000000&BidderCustomerId=15&SellerCustomerId=10&ApprovalType=HDFC&AssetSize=200%20SqYards&BuiltUpArea=2000SFT&Status=open
+
+http://127.0.0.1:8000/AddBid?AssetId=15&CustomerId=10&BidPrice=20000000
+
+http://127.0.0.1:8000/RetrieveAuctions?Status=Open
+
+http://127.0.0.1:8000/CloseAuction?AssetId=102
+
+
+==================================User Name & Passwords================================================================================================================
+
+Vineetha.danda@gmail.com
+abcd1234
+
+
+
+==================================User Name & Passwords================================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
