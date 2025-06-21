@@ -10,10 +10,10 @@ const userAuthenticationModule = require('./UserAuthentication.js');
 const retrieveAuctionsModule = require('./RetrieveAuctions.js');
 const closeAuctionModule = require('./CloseAuction.js');
 const membershipRecordCRUDModule = require("./MembershipsTableCRUD.js");
+const processAssetsModule = require("./ProcessAssets.js");
 
 const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
-
 
 
 httpClientModule.createServer( async (httpRequest, httpResponse) =>
@@ -50,10 +50,20 @@ httpClientModule.createServer( async (httpRequest, httpResponse) =>
             return;
         }
 
+        // Process File Upload Requests
+
+        if( queryParserPathName == "/UploadAuctionPhotos" )
+        {
+            await processAssetsModule.processAssetAdditions(mySqlConnection, httpRequest, httpResponse);
+
+            return;
+        }
+
         // Process POST Requests
 
-        if( httpRequest.method === 'POST' )
+        else if( httpRequest.method === 'POST' )
         {
+
             let httpRequestBody = '';
 
             httpRequest.on( 'data', (dataChunk) => { 
@@ -63,9 +73,16 @@ httpClientModule.createServer( async (httpRequest, httpResponse) =>
 
             httpRequest.on( 'end', async () => { 
 
-                LoggerUtilModule.logInformation("Total Data chunk = " + httpRequestBody);
+                try
+                {
+                    LoggerUtilModule.logInformation("Total Data chunk = " + httpRequestBody);
 
-                await processSmartBidInputPOSTRequests(queryParserPathName, JSON.parse(httpRequestBody), mySqlConnection, httpResponse);
+                        await processSmartBidInputPOSTRequests(queryParserPathName, JSON.parse(httpRequestBody), mySqlConnection, httpResponse);
+                }
+                catch(exception)
+                {
+                    console.error("Error while processing the post Request of Smart bid Server => " + exception.message);
+                }
             });
         }
 

@@ -13,6 +13,8 @@ const mySqlConnectionDBDetails = {
 const hashGenerationSalt = 5;
 const bDebugInformation = true; 
 
+const imagesDirectory = ".\\AssetImages\\";
+const videosDirectory = ".\\AssetVideos\\";
 
 // Required values of Various Tables / client - server operations
 
@@ -34,7 +36,8 @@ const membershipRecordRequiredValues = [ "CustomerId", "MembershipType", "Paymen
 
 // Module exports
 
-module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformation, customerRecordRequiredValues, assetRecordRequiredValues, bidRecordRequiredValues,
-    retrieveAuctionsRequiredValues, closeAuctionRequiredValues, userAuthRecordRequiredValues, membershipRecordRequiredValues,
+module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformation, customerRecordRequiredValues, assetRecordRequiredValues,
+    bidRecordRequiredValues, retrieveAuctionsRequiredValues, closeAuctionRequiredValues, userAuthRecordRequiredValues, 
+    membershipRecordRequiredValues, imagesDirectory, videosDirectory,
 };
 
