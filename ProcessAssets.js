@@ -3,6 +3,7 @@ const GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
 const InputValidatorModule = require("./HelperUtils/InputValidator.js");
 const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 const HandleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
+const AssetsTableCRUDModule = require("./AssetsTableCRUD.js");
 
 const fileSystem = require('fs/promises');
 
@@ -14,12 +15,6 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
     try
     {
 
-        // Validate the Incoming Request
-
-        
-        // Add Asset and retrieve AssetId
-
-
         // Process the Asset Files
 
         let parsedFields, parsedFiles;
@@ -28,7 +23,36 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
         [parsedFields, parsedFiles] = await formidableParser.parse(httpRequest);
 
         let inputAssetObject = parsedFields;
-        let assetId = 5;
+
+        // Add Asset and retrieve AssetId
+
+        let NoOfRecordsAdded, returnMessage;
+
+        inputAssetObject.Status = "Open";
+
+        [NoOfRecordsAdded, returnMessage] = await AssetsTableCRUDModule.createAssetsDBRecord(mySqlConnection, inputAssetObject, httpResponse);
+
+        if( NoOfRecordsAdded  == 0 )
+        {
+            
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, returnMessage);
+            return;
+        }
+
+        let assetId;
+        [assetId, returnMessage] = await AssetsTableCRUDModule.returnIdOfCurrentAssetRecord(mySqlConnection, inputAssetObject);
+
+        if( assetId  == 0 )
+        {
+            
+            HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, returnMessage);
+            return;
+        }
+
+        LoggerUtilModule.logInformation("Asset Id of created record = " + assetId);
+
+        
+        // Retrieve the file path of incoming files and copy them to DB Server
 
         let currentIndex = 0;
 
@@ -73,7 +97,6 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
         let noOfFiles = currentIndex;
 
         // Add Asset Details record to the DB
-        // Update Asset Details if the record already exists ( in case of new file uploads & file deletions )
 
         let assetDetailsRecordValues = '(' + assetId + ',' +
         '' + noOfFiles + ',' +
@@ -109,6 +132,12 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
 
     }
 }
+
+
+// Update Asset Details if the record already exists ( in case of new file uploads & file deletions )
+
+// Delete the files ( file deletions )
+
 
 module.exports = {processAssetAdditions};
 

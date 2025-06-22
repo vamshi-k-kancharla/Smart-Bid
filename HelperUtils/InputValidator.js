@@ -1,4 +1,7 @@
 
+const LoggerUtilModule = require("./LoggerUtil.js");
+
+
 function validateUserInputValue(userInputValue)
 {
     if( userInputValue == null || userInputValue == undefined || userInputValue === "" )
@@ -15,6 +18,8 @@ function validateUserInputObject(userInputObject, userInputKeys)
     {
         if( !validateUserInputValue(userInputObject[currentInputKey]) )
         {
+
+            LoggerUtilModule.logInformation("validateUserInputObject..value not found for Key = " + currentInputKey);
             return false;
         }
     }

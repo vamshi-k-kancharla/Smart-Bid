@@ -2,7 +2,6 @@
 const GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
 const InputValidatorModule = require("./HelperUtils/InputValidator.js");
 const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
-const HandleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
 
 async function createAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse)
@@ -17,34 +16,25 @@ async function createAssetsDBRecord(mySqlConnection, inputAssetRecord, httpRespo
             !InputValidatorModule.validateUserInputObject(inputAssetRecord, GlobalsForServerModule.assetRecordRequiredValues) )
         {
 
-            HandleHttpResponseModule.returnBadRequestHttpResponse( httpResponse, 
-                "Bad request from client...One or more missing Asset Record Input values" );
-
-            return;
+            return [0, "Bad request from client...One or more missing Asset Record Input values"];
         }
 
         // Process the Incoming Request
 
-        await checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, httpResponse);
+        return await checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, httpResponse);
     }
 
     catch(exception)
     {
 
-        HandleHttpResponseModule.returnServerFailureHttpResponse( httpResponse, 
-            "Error occured while adding asset record to the DB = " + exception.message );
+        return [0, "Error occured while adding asset record to the DB = " + exception.message];
     }
 }
 
-
-async function checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, httpResponse)
+function retrieveQueryForAssetRecord(inputAssetRecord)
 {
 
-    try
-    {
-        // Check for existence of Asset Record
-        
-        var mySqlCheckAssetRecordExistence = 'select * from assets where ' +
+    let mySqlCheckAssetRecordExistence = 'select * from assets where ' +
             'AssetType = "' + inputAssetRecord.AssetType + '" and ' +
             'MinAuctionPrice = "' + inputAssetRecord.MinAuctionPrice + '" and ' +
             'Address = "' + inputAssetRecord.Address + '" and ' +
@@ -58,6 +48,19 @@ async function checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRec
             'BuiltUpArea = "' + inputAssetRecord.BuiltUpArea + '" and ' +
             'Status = "' + inputAssetRecord.Status + '"';
 
+    return mySqlCheckAssetRecordExistence;
+}
+
+
+async function checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRecord, httpResponse)
+{
+
+    try
+    {
+        // Check for existence of Asset Record
+
+        let mySqlCheckAssetRecordExistence = retrieveQueryForAssetRecord(inputAssetRecord);
+
         LoggerUtilModule.logInformation("Asset DB Record Existence Query = " + mySqlCheckAssetRecordExistence);
 
         let assetRecordCheckResult = await mySqlConnection.execute( mySqlCheckAssetRecordExistence ); 
@@ -67,12 +70,11 @@ async function checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRec
 
         if( assetRecordCheckResult[0].length == 0 )
         {
-            await addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse);
+            return await addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse);
         }
         else
         {
-            HandleHttpResponseModule.returnBadRequestHttpResponse( httpResponse, 
-                "Asset Record with the given values already exists" );
+            return [0, "Asset Record with the given values already exists"];
         }
 
     }
@@ -80,8 +82,7 @@ async function checkForExistenceAndAddAssetRecord(mySqlConnection, inputAssetRec
     catch(exception)
     {
 
-        HandleHttpResponseModule.returnServerFailureHttpResponse( httpResponse, 
-            "Error occured while checking for existence of asset record = " + exception.message );
+        return [0, "Error occured while checking for existence of asset record = " + exception.message];
     }
 }
 
@@ -114,19 +115,44 @@ async function addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse
 
         LoggerUtilModule.logInformation("Asset DB Record Query = " + mySqlAssetDBRecordAdd);
 
-        let mySqlAddAssetRecordResult = await mySqlConnection.execute( mySqlAssetDBRecordAdd ); 
+        let mySqlAddAssetRecordResult = await mySqlConnection.execute( mySqlAssetDBRecordAdd );
 
-        if( mySqlAddAssetRecordResult[0].affectedRows == 1 )
+        return [ mySqlAddAssetRecordResult[0].affectedRows, "Added Asset Record to the DB Table" ];
+
+    }
+
+    catch(exception)
+    {
+
+        return [0, "Error occured while adding asset record to the DB = " + exception.message];
+    }
+
+}
+
+
+async function returnIdOfCurrentAssetRecord(mySqlConnection, inputAssetRecord)
+{
+
+    try
+    {
+        // Retrieve Id of Current Asset Record
+
+        let mySqlAssetRecord = retrieveQueryForAssetRecord(inputAssetRecord);
+
+        LoggerUtilModule.logInformation("Asset DB Record Existence Query = " + mySqlAssetRecord);
+
+        let assetRecordCheckResult = await mySqlConnection.execute( mySqlAssetRecord ); 
+
+        LoggerUtilModule.logInformation("Successfully retrieved the Record from Assets table...No Of Records = " + 
+            assetRecordCheckResult[0].length);
+
+        if( assetRecordCheckResult[0].length == 1 )
         {
-
-            HandleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
-                "Successfully added the asset record to the DB ");
+            return [assetRecordCheckResult[0][0].AssetId, "Success"];
         }
         else
         {
-
-            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
-                "Couldn't add asset DB Record to the required table");
+            return [0, "Asset Record with the given values doesn't exist"];
         }
 
     }
@@ -134,10 +160,10 @@ async function addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse
     catch(exception)
     {
 
-        HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
-            "Error occured while adding asset record to the DB = " + exception.message);
+        return [0, "Error occured while retrieving the asset record = " + exception.message];
     }
 }
 
-module.exports = {createAssetsDBRecord};
+
+module.exports = {createAssetsDBRecord, returnIdOfCurrentAssetRecord};
 
