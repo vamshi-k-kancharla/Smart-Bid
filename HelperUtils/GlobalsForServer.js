@@ -34,10 +34,36 @@ const userAuthRecordRequiredValues = [ "EmailAddress", "PasswordCode" ];
 const membershipRecordRequiredValues = [ "CustomerId", "MembershipType", "PaymentGateway", "PaymentType", "FeeAmount" ];
 
 
+// Notification Related Global Objects
+
+const emailTransportObject = {  
+    
+    service : 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+
+    auth: {
+
+        user : 'smartbid.notification@gmail.com',
+        pass : 'imjnuarwazkhfgtw'
+    },
+
+};
+
+const emailNotificationSender = 'smartbid.notification@gmail.com';
+
+
 // Module exports
 
-module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformation, customerRecordRequiredValues, assetRecordRequiredValues,
+module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformation, 
+    
+    customerRecordRequiredValues, assetRecordRequiredValues,
     bidRecordRequiredValues, retrieveAuctionsRequiredValues, closeAuctionRequiredValues, userAuthRecordRequiredValues, 
-    membershipRecordRequiredValues, imagesDirectory, videosDirectory,
+    membershipRecordRequiredValues, 
+    
+    imagesDirectory, videosDirectory,
+
+    emailNotificationSender, emailTransportObject,
 };
 
