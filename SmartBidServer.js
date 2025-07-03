@@ -64,6 +64,8 @@ httpClientModule.createServer( async (httpRequest, httpResponse) =>
         else if( httpRequest.method === 'POST' )
         {
 
+            LoggerUtilModule.logInformation("Processing incoming POST Requests");
+
             let httpRequestBody = '';
 
             httpRequest.on( 'data', (dataChunk) => { 
@@ -172,7 +174,7 @@ async function processSmartBidInputGETRequests(queryParserPathName, queryParserQ
 
 }
 
-async function processSmartBidInputPOSTRequests(queryParserPathName, authQueryInputJsonData, mySqlConnection, httpResponse)
+async function processSmartBidInputPOSTRequests(queryParserPathName, inputJsonData, mySqlConnection, httpResponse)
 {
     try
     {
@@ -184,7 +186,13 @@ async function processSmartBidInputPOSTRequests(queryParserPathName, authQueryIn
 
             case "/AuthenticateUser" :
 
-                await userAuthenticationModule.authenticateUserCredentials(mySqlConnection, authQueryInputJsonData, httpResponse);
+                await userAuthenticationModule.authenticateUserCredentials(mySqlConnection, inputJsonData, httpResponse);
+
+                break;
+
+            case "/AddCustomer" :
+
+                await customersRecordCRUDModule.createCustomersDBRecord(mySqlConnection, inputJsonData, httpResponse);
 
                 break;
 
