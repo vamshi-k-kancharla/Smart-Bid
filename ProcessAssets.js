@@ -99,8 +99,8 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
         // Add Asset Details record to the DB
 
         let assetDetailsRecordValues = '(' + assetId + ',' +
-        '' + noOfFiles + ',' +
-        '" ")';
+        noOfFiles + ',"' + inputAssetObject.AssetDescription +
+        '")';
 
         let mySqlAssetDetailsDBRecordAdd = 'INSERT INTO assetdetails (assetId, NoOfFiles, assetDescription) ' +
         ' Values ' + assetDetailsRecordValues;
