@@ -46,6 +46,8 @@ function retrieveQueryForAssetRecord(inputAssetRecord)
             'ApprovalType = "' + inputAssetRecord.ApprovalType + '" and ' +
             'AssetSize = "' + inputAssetRecord.AssetSize + '" and ' +
             'BuiltUpArea = "' + inputAssetRecord.BuiltUpArea + '" and ' +
+            'AssetBedrooms = "' + inputAssetRecord.AssetBedrooms + '" and ' +
+            'AssetBathrooms = "' + inputAssetRecord.AssetBathrooms + '" and ' +
             'Status = "' + inputAssetRecord.Status + '"';
 
     return mySqlCheckAssetRecordExistence;
@@ -106,12 +108,14 @@ async function addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse
         '"' + inputAssetRecord.ApprovalType + '",' +
         '"' + inputAssetRecord.AssetSize + '",' +
         '"' + inputAssetRecord.BuiltUpArea + '",' +
-        '"' + inputAssetRecord.Status + '")';
+        '"' + inputAssetRecord.Status + '",' +
+        '"' + inputAssetRecord.AssetBedrooms + '",' +
+        '"' + inputAssetRecord.AssetBathrooms + '")';
 
         LoggerUtilModule.logInformation("asset DB Record Values = " + assetRecordValues);
 
         var mySqlAssetDBRecordAdd = 'INSERT INTO assets ( AssetType, MinAuctionPrice, Address, Colony, City, State, Country,' +
-        'CurrentBidPrice, SellerCustomerId, ApprovalType, AssetSize, BuiltUpArea, Status ) Values ' + assetRecordValues;
+        'CurrentBidPrice, SellerCustomerId, ApprovalType, AssetSize, BuiltUpArea, Status, AssetBedrooms, AssetBathrooms ) Values ' + assetRecordValues;
 
         LoggerUtilModule.logInformation("Asset DB Record Query = " + mySqlAssetDBRecordAdd);
 
