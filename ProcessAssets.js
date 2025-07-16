@@ -98,6 +98,7 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
 
         // Add Asset Details record to the DB
 
+        /*
         let assetDetailsRecordValues = '(' + assetId + ',' +
         noOfFiles + ',"' + inputAssetObject.AssetDescription +
         '")';
@@ -120,6 +121,27 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
 
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad Request...wrong asset details input add request");
+        }
+        */
+
+        let mySqlAssetDetailsDBRecordUpdate = 'UPDATE assets set NoOfFiles = ' + noOfFiles + ', AssetDescription = "' +
+        inputAssetObject.AssetDescription + '" Where AssetId = ' + assetId;
+
+        LoggerUtilModule.logInformation("Asset Details DB Record Update = " + mySqlAssetDetailsDBRecordUpdate);
+
+        let mySqlAssetDetailsDBRecordUpdateResult = await mySqlConnection.execute( mySqlAssetDetailsDBRecordUpdate );
+
+        if( mySqlAssetDetailsDBRecordUpdateResult[0].affectedRows === 1 )
+        {
+
+            HandleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
+                "Successfully updated asset details to assets table record");
+        }
+        else
+        {
+
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad Request...wrong asset details input update request");
         }
 
     }
