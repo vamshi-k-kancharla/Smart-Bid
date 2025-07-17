@@ -33,6 +33,8 @@ const userAuthRecordRequiredValues = [ "EmailAddress", "PasswordCode" ];
 
 const membershipRecordRequiredValues = [ "CustomerId", "MembershipType", "PaymentGateway", "PaymentType", "FeeAmount" ];
 
+const customerAuctionsAndBidsRequiredValues = [ "SellerCustomerId" ];
+
 
 // Notification Related Global Objects
 
@@ -61,6 +63,8 @@ module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformatio
     customerRecordRequiredValues, assetRecordRequiredValues,
     bidRecordRequiredValues, retrieveAuctionsRequiredValues, closeAuctionRequiredValues, userAuthRecordRequiredValues, 
     membershipRecordRequiredValues, 
+    
+    customerAuctionsAndBidsRequiredValues,
     
     imagesDirectory, videosDirectory,
 
