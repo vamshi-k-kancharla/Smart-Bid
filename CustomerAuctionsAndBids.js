@@ -34,7 +34,14 @@ async function retrieveCustomerAuctionsAndBids(mySqlConnection, inputQueryRecord
 
         let myAuctionsAndBidsResult = {};
 
-        myAuctionsAndBidsResult["CustomerAuctions"] = mySqlRetrieveAuctionsResult[0];
+        if( mySqlRetrieveAuctionsResult[0].length == 0 )
+        {
+            myAuctionsAndBidsResult["CustomerAuctions"] = [];
+        }
+        else
+        {
+            myAuctionsAndBidsResult["CustomerAuctions"] = mySqlRetrieveAuctionsResult[0];
+        }
 
         // Process the Incoming Request to retrieve Asset IDS for current customer bids
         
@@ -45,31 +52,39 @@ async function retrieveCustomerAuctionsAndBids(mySqlConnection, inputQueryRecord
         LoggerUtilModule.logInformation("Successfully retrieved the Asset Ids from bids table for current Customer...No Of Records = " + 
             mySqlRetrieveAssetsResult[0].length);
 
-        // Process the Incoming Request for current bids
-        
-        var mySqlRetrieveBidsQuery = 'select * from assets where AssetId in ( ';
-
-        for( let i = 0 ; i < mySqlRetrieveAssetsResult[0].length; i++ )
+        if( mySqlRetrieveAssetsResult[0].length == 0 )
         {
-            mySqlRetrieveBidsQuery += mySqlRetrieveAssetsResult[0][i].AssetId;
-
-            if( i != mySqlRetrieveAssetsResult[0].length - 1 )
-            {
-                
-                mySqlRetrieveBidsQuery += ' , ';
-            }
+            myAuctionsAndBidsResult["CustomerBids"] = [];
         }
+        else
+        {
 
-        mySqlRetrieveBidsQuery += ')';
+            // Process the Incoming Request for current bids
+            
+            var mySqlRetrieveBidsQuery = 'select * from assets where AssetId in ( ';
 
-        console.log( "retrieveCustomerAuctionsAndBids : mySqlRetrieveBidsQuery => " + mySqlRetrieveBidsQuery );
+            for( let i = 0 ; i < mySqlRetrieveAssetsResult[0].length; i++ )
+            {
+                mySqlRetrieveBidsQuery += mySqlRetrieveAssetsResult[0][i].AssetId;
 
-        let mySqlRetrieveBidsResult = await mySqlConnection.execute( mySqlRetrieveBidsQuery );
+                if( i != mySqlRetrieveAssetsResult[0].length - 1 )
+                {
+                    
+                    mySqlRetrieveBidsQuery += ' , ';
+                }
+            }
 
-        LoggerUtilModule.logInformation("Successfully retrieved the bids from assets table for current Customer...No Of Records = " + 
-            mySqlRetrieveBidsResult[0].length);
+            mySqlRetrieveBidsQuery += ')';
 
-        myAuctionsAndBidsResult["CustomerBids"] = mySqlRetrieveBidsResult[0];
+            console.log( "retrieveCustomerAuctionsAndBids : mySqlRetrieveBidsQuery => " + mySqlRetrieveBidsQuery );
+
+            let mySqlRetrieveBidsResult = await mySqlConnection.execute( mySqlRetrieveBidsQuery );
+
+            LoggerUtilModule.logInformation("Successfully retrieved the bids from assets table for current Customer...No Of Records = " + 
+                mySqlRetrieveBidsResult[0].length);
+
+            myAuctionsAndBidsResult["CustomerBids"] = mySqlRetrieveBidsResult[0];
+        }
 
         // Send back the success response
 
