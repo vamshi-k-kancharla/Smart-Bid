@@ -35,6 +35,8 @@ const membershipRecordRequiredValues = [ "CustomerId", "MembershipType", "Paymen
 
 const customerAuctionsAndBidsRequiredValues = [ "SellerCustomerId" ];
 
+const retrieveCustomerRequiredValues = [ "CustomerId" ];
+
 
 // Notification Related Global Objects
 
@@ -64,7 +66,7 @@ module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformatio
     bidRecordRequiredValues, retrieveAuctionsRequiredValues, closeAuctionRequiredValues, userAuthRecordRequiredValues, 
     membershipRecordRequiredValues, 
     
-    customerAuctionsAndBidsRequiredValues,
+    customerAuctionsAndBidsRequiredValues, retrieveCustomerRequiredValues,
     
     imagesDirectory, videosDirectory,
 

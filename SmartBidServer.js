@@ -12,6 +12,7 @@ const closeAuctionModule = require('./CloseAuction.js');
 const membershipRecordCRUDModule = require("./MembershipsTableCRUD.js");
 const processAssetsModule = require("./ProcessAssets.js");
 const customerAuctionsAndBidsModule = require('./CustomerAuctionsAndBids.js');
+const retrieveCustomerModule = require('./RetrieveCustomer.js');
 
 const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
@@ -142,6 +143,12 @@ async function processSmartBidInputGETRequests(queryParserPathName, queryParserQ
             case "/RetrieveAuctions" :
 
                 await retrieveAuctionsModule.retrieveAuctions(mySqlConnection, queryParserQueryData, httpResponse);
+
+                break;
+
+            case "/RetrieveCustomer" :
+
+                await retrieveCustomerModule.retrieveCustomer(mySqlConnection, queryParserQueryData, httpResponse);
 
                 break;
 
