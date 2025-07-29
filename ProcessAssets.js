@@ -86,8 +86,9 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
 
             currentFilePath = currentFilePath.trim();
 
-            let currentImageFileName = GlobalsForServerModule.imagesDirectory + "asset_" + assetId + "_file_" + currentIndex + "." + 
-                currentFileExtension;
+            console.log("processAssetAdditions : currentFileExtension = " + currentFileExtension + " , converting to .jpg");
+
+            let currentImageFileName = GlobalsForServerModule.imagesDirectory + "asset_" + assetId + "_file_" + currentIndex + ".jpg";
 
             await fileSystem.copyFile(currentFilePath, currentImageFileName);
             
