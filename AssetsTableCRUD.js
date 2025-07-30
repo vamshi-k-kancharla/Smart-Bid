@@ -36,6 +36,7 @@ function retrieveQueryForAssetRecord(inputAssetRecord)
 
     let mySqlCheckAssetRecordExistence = 'select * from assets where ' +
             'AssetType = "' + inputAssetRecord.AssetType + '" and ' +
+            'BiddingType = "' + inputAssetRecord.BiddingType + '" and ' +
             'MinAuctionPrice = "' + inputAssetRecord.MinAuctionPrice + '" and ' +
             'Address = "' + inputAssetRecord.Address + '" and ' +
             'Colony = "' + inputAssetRecord.Colony + '" and ' +
@@ -97,6 +98,7 @@ async function addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse
         // Add the Asset DB Record
         
         var assetRecordValues = '("' + inputAssetRecord.AssetType + '",' +
+        '"' + inputAssetRecord.BiddingType + '",' +
         '"' + inputAssetRecord.MinAuctionPrice + '",' +
         '"' + inputAssetRecord.Address + '",' +
         '"' + inputAssetRecord.Colony + '",' +
@@ -114,7 +116,7 @@ async function addAssetsDBRecord(mySqlConnection, inputAssetRecord, httpResponse
 
         LoggerUtilModule.logInformation("asset DB Record Values = " + assetRecordValues);
 
-        var mySqlAssetDBRecordAdd = 'INSERT INTO assets ( AssetType, MinAuctionPrice, Address, Colony, City, State, Country,' +
+        var mySqlAssetDBRecordAdd = 'INSERT INTO assets ( AssetType, BiddingType, MinAuctionPrice, Address, Colony, City, State, Country,' +
         'CurrentBidPrice, SellerCustomerId, ApprovalType, AssetSize, BuiltUpArea, Status, AssetBedrooms, AssetBathrooms ) Values ' + assetRecordValues;
 
         LoggerUtilModule.logInformation("Asset DB Record Query = " + mySqlAssetDBRecordAdd);

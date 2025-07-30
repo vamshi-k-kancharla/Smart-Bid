@@ -20,7 +20,7 @@ const videosDirectory = ".\\AssetVideos\\";
 
 const customerRecordRequiredValues = [ "Name", "EmailAddress", "Address", "UserType", "City", "State", "Country", "Password", "PhoneNumber"];
 
-const assetRecordRequiredValues = [ "AssetType", "MinAuctionPrice", "Address", "Colony", "City", "State", "Country", "SellerCustomerId", 
+const assetRecordRequiredValues = [ "AssetType", "BiddingType", "MinAuctionPrice", "Address", "Colony", "City", "State", "Country", "SellerCustomerId", 
     "ApprovalType", "AssetSize", "BuiltUpArea", "Status"];
 
 const bidRecordRequiredValues = [ "AssetId", "CustomerId", "BidPrice" ];
