@@ -23,7 +23,7 @@ const customerRecordRequiredValues = [ "Name", "EmailAddress", "Address", "UserT
 const assetRecordRequiredValues = [ "AssetType", "BiddingType", "MinAuctionPrice", "Address", "Colony", "City", "State", "Country", "SellerCustomerId", 
     "ApprovalType", "AssetSize", "BuiltUpArea", "Status"];
 
-const bidRecordRequiredValues = [ "AssetId", "CustomerId", "BidPrice" ];
+const bidRecordRequiredValues = [ "AssetId", "CustomerId", "BidPrice", "BiddingType" ];
 
 const retrieveAuctionsRequiredValues = [ "Status" ];
 

@@ -96,7 +96,7 @@ async function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
         LoggerUtilModule.logInformation("Bid DB Record Query = " + mySqlBidDBRecordAdd);
         LoggerUtilModule.logInformation("Asset DB Record Update Query = " + mySqlAssetsRecordUpdate);
 
-        await mySqlConnection.beginTransaction();
+        // await mySqlConnection.beginTransaction();
 
         let mySqlBidDBRecordAddResult = await mySqlConnection.execute( mySqlBidDBRecordAdd );
 
@@ -110,11 +110,12 @@ async function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 
         LoggerUtilModule.logInformation("Successfully added the bid records to the Bids Table " + 
             mySqlBidDBRecordAddResult[0].affectedRows);
+
         LoggerUtilModule.logInformation("Now updating the assets table with input values ");
 
         let mySqlAssetDBUpdateRecordResult = await mySqlConnection.execute( mySqlAssetsRecordUpdate );
 
-        if( mySqlAssetDBUpdateRecordResult[0].affectedRows == 0 )
+        if( mySqlAssetDBUpdateRecordResult[0].affectedRows == 0 && inputBidRecord.BiddingType == 'open' )
         {
 
             LoggerUtilModule.logInformation("Error occured while updating assets Table Record ");
@@ -122,9 +123,19 @@ async function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
             throw new Error("Error occured while updating assets Table Record ");
         }
 
-        LoggerUtilModule.logInformation("Successfully upated the asset record => " + mySqlAssetDBUpdateRecordResult[0].affectedRows);
+        else if ( mySqlAssetDBUpdateRecordResult[0].affectedRows == 0 && inputBidRecord.BiddingType == 'secretive' )
+        {
 
-        await mySqlConnection.commit();
+            LoggerUtilModule.logInformation("Assets record isn't updated with the latest bid as the secretive bid price is lesser than current highest bid price ");
+        }
+
+        else
+        {
+
+            LoggerUtilModule.logInformation("Successfully upated the asset record => " + mySqlAssetDBUpdateRecordResult[0].affectedRows);
+        }
+
+        // await mySqlConnection.commit();
 
         handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
             "Successfully placed the bid for current asset");
@@ -132,8 +143,8 @@ async function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 
     catch(exception)
     {
-        mySqlConnection.rollback().catch( innerException => {
-            "Error occured while rolling back transaction for bids placement => " + innerException.message});
+        // mySqlConnection.rollback().catch( innerException => {
+        //    "Error occured while rolling back transaction for bids placement => " + innerException.message});
 
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while adding bid record to the Table = " + exception.message);

@@ -35,25 +35,26 @@ async function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
 
             // Retrieve email addresses of Seller & Buyer
 
-            let [emailAddress1, emailAddress2] = await retrieveSellerBuyerEmailAddresses(mySqlConnection, inputQueryRecord);
+            let notificationEmailObject = await retrieveSellerBuyerEmailAddressesAndContent(mySqlConnection, inputQueryRecord);
 
-            if( emailAddress1 == "" && emailAddress2 == "" )
+            if( notificationEmailObject == null || notificationEmailObject == undefined )
             {
 
                 handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
-                    "Error occured retrieving the email addresses of the closed auction");
+                    "Error occured retrieving the email addresses & subject / message of the closed auction");
 
                 return;
             }
 
-            LoggerUtilModule.logInformation("email address1 = " + emailAddress1 + " ,email address2 = " + emailAddress2);
+            LoggerUtilModule.logInformation("email address1 = " + notificationEmailObject.BidderEmailAddress + " ,email address2 = " + 
+                notificationEmailObject.SellerEmailAddress );
 
             let emailNotificationsSent = await EmailNotificationModule.sendEmailNotificationToStakeHolders(
                 
-                emailAddress1,
-                emailAddress2,
-                "Your Auction has gotten closed 3",
-                "Auction of House @GodrejRoyalWoods has been closed at a price of 87.5 lakhs"
+                notificationEmailObject.BidderEmailAddress,
+                notificationEmailObject.SellerEmailAddress,
+                notificationEmailObject.Subject,
+                notificationEmailObject.Message
 
             );
 
@@ -67,7 +68,7 @@ async function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
             }
 
             handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
-                "Successfully closed the auction through assets table ");
+                "Successfully closed the auction through assets table & notification sent");
 
         }
         else
@@ -86,7 +87,7 @@ async function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
     }
 }
 
-async function retrieveSellerBuyerEmailAddresses(mySqlConnection, inputQueryRecord)
+async function retrieveSellerBuyerEmailAddressesAndContent(mySqlConnection, inputQueryRecord)
 {
     try
     {
@@ -101,8 +102,20 @@ async function retrieveSellerBuyerEmailAddresses(mySqlConnection, inputQueryReco
         {
 
             console.error("No Assets found with assetId = " + inputQueryRecord.AssetId);
-            return ["", ""];
+            return null;
         }
+
+        // Formulate Email Content ( Subject & Message )
+
+        let notificationEmailObject = {};
+
+        notificationEmailObject["Subject"] = "Closure of Auction for the " + mySqlRetrieveAssetQueryResult[0][0].AssetType +
+            " in " + mySqlRetrieveAssetQueryResult[0][0].Colony;
+
+        notificationEmailObject["Message"] = "Auction for the " + mySqlRetrieveAssetQueryResult[0][0].AssetType +
+            " in " + mySqlRetrieveAssetQueryResult[0][0].Colony + " , " + mySqlRetrieveAssetQueryResult[0][0].City + " has been closed. " +
+            " Seller & Buyer have agreed for the price of ( highest bid ) Rs. " + mySqlRetrieveAssetQueryResult[0][0].CurrentBidPrice + 
+            " . Please communicate further for deal closure and registration process. \n \n Regards,\n SmartBid Team.";
 
         // Retrieve Seller/Buyer Customer Records
         
@@ -118,16 +131,20 @@ async function retrieveSellerBuyerEmailAddresses(mySqlConnection, inputQueryReco
             console.error("Required customers are not found for Customer Id's = " + 
                 mySqlRetrieveAssetQueryResult[0][0].BidderCustomerId + " , " +
                 mySqlRetrieveAssetQueryResult[0][0].SellerCustomerId);
-            return ["", ""];
+
+            return null;
         }
 
-        return [mySqlRetrieveCustomersQueryResult[0][0].EmailAddress, mySqlRetrieveCustomersQueryResult[0][1].EmailAddress];
+        notificationEmailObject["BidderEmailAddress"] = mySqlRetrieveCustomersQueryResult[0][0].EmailAddress;
+        notificationEmailObject["SellerEmailAddress"] = mySqlRetrieveCustomersQueryResult[0][1].EmailAddress;
+
+        return notificationEmailObject;
     }
 
     catch(exception)
     {
-        console.error( "Error occured while retrieving the email addresses of seller & buyer => " + exception.message);
-        return ["", ""];
+        console.error( "Error occured while retrieving the email addresses of seller & buyer and email message => " + exception.message);
+        return null;
     }
 }
 
