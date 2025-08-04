@@ -152,6 +152,12 @@ async function processSmartBidInputGETRequests(queryParserPathName, queryParserQ
 
                 break;
 
+            case "/DeleteCustomer" :
+
+                await retrieveCustomerModule.deleteCustomerRecord(mySqlConnection, queryParserQueryData, httpResponse);
+
+                break;
+
             case "/CustomerAuctionsAndBids" :
 
                 await customerAuctionsAndBidsModule.retrieveCustomerAuctionsAndBids(mySqlConnection, queryParserQueryData, httpResponse);

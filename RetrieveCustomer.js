@@ -13,7 +13,8 @@ async function retrieveCustomer(mySqlConnection, inputQueryRecord, httpResponse)
         // Validate the Incoming Request
 
         if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
-            !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.retrieveCustomerRequiredValues) )
+            ( !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.retrieveCustomerRequiredValues) && 
+              !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.retrieveCustomerRequiredValues2) ))
         {
 
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
@@ -25,7 +26,9 @@ async function retrieveCustomer(mySqlConnection, inputQueryRecord, httpResponse)
 
         // Process the Incoming Request
         
-        var mySqlRetrieveCustomersQuery = 'Select * from customers where customerId = "' + inputQueryRecord.CustomerId + '"';
+        var mySqlRetrieveCustomersQuery = (inputQueryRecord.CustomerId != null && inputQueryRecord.CustomerId != undefined) ?
+        ('Select * from customers where CustomerId = "' + inputQueryRecord.CustomerId + '"') :
+        ('Select * from customers where EmailAddress = "' + inputQueryRecord.EmailAddress + '"');
 
         let mySqlRetrieveCustomersResult = await mySqlConnection.execute( mySqlRetrieveCustomersQuery );
 
@@ -44,5 +47,59 @@ async function retrieveCustomer(mySqlConnection, inputQueryRecord, httpResponse)
     }
 }
 
-module.exports = {retrieveCustomer};
+async function deleteCustomerRecord(mySqlConnection, inputQueryRecord, httpResponse)
+{
+    try
+    {
+
+        // Validate the Incoming Request
+
+        if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
+            ( !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.retrieveCustomerRequiredValues) && 
+              !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.retrieveCustomerRequiredValues2) ))
+        {
+
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad request from client...One or more missing Customer Record Input values");
+
+            return;
+
+        }
+
+        // Process the Incoming Request
+        
+        var mySqlDeleteCustomerQuery = (inputQueryRecord.CustomerId != null && inputQueryRecord.CustomerId != undefined) ?
+        ('Delete from customers where CustomerId = "' + inputQueryRecord.CustomerId + '"') :
+        ('Delete from customers where EmailAddress = "' + inputQueryRecord.EmailAddress + '"');
+
+        let mySqlDeleteCustomerResult = await mySqlConnection.execute( mySqlDeleteCustomerQuery );
+
+        LoggerUtilModule.logInformation("Successfully deleted the Customer Record from Customers table...No Of affected Rows = " + 
+            mySqlDeleteCustomerResult[0].affectedRows);
+
+        if( mySqlDeleteCustomerResult[0].affectedRows == 1 )
+        {
+
+            HandleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
+                "Successfully removed the customer record from the DB ");
+        }
+        else
+        {
+
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Couldn't remove Customers DB Record from the required table");
+        }
+
+    }
+
+    catch(exception)
+    {
+        
+        HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while removing the Customer Record = " + exception.message);
+    }
+    
+}
+
+module.exports = {retrieveCustomer, deleteCustomerRecord};
 
