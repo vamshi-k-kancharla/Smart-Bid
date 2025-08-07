@@ -39,6 +39,8 @@ const retrieveCustomerRequiredValues = [ "CustomerId" ];
 
 const retrieveCustomerRequiredValues2 = [ "EmailAddress" ];
 
+const retrieveBidRequiredValues = [ "AssetId" ];
+
 
 // Notification Related Global Objects
 
@@ -69,6 +71,8 @@ module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformatio
     membershipRecordRequiredValues, 
     
     customerAuctionsAndBidsRequiredValues, retrieveCustomerRequiredValues, retrieveCustomerRequiredValues2,
+
+    retrieveBidRequiredValues,
     
     imagesDirectory, videosDirectory,
 
