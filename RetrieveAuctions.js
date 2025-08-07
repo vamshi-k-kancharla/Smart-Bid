@@ -49,5 +49,58 @@ async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
     }
 }
 
-module.exports = {retrieveAuctions};
+
+async function deleteAssetRecord(mySqlConnection, inputQueryRecord, httpResponse)
+{
+    try
+    {
+
+        // Validate the Incoming Request
+
+        if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
+            ( !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.closeAuctionRequiredValues) ))
+        {
+
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad request from client...One or more missing Asset Record Input values");
+
+            return;
+
+        }
+
+        // Process the Incoming Request
+        
+        var mySqlDeleteAssetQuery = 'Delete from assets where AssetId = "' + inputQueryRecord.AssetId + '"';
+        
+        let mySqlDeleteAssetResult = await mySqlConnection.execute( mySqlDeleteAssetQuery );
+
+        LoggerUtilModule.logInformation("Successfully deleted the Asset Record from Assets table...No Of affected Rows = " + 
+            mySqlDeleteAssetResult[0].affectedRows);
+
+        if( mySqlDeleteAssetResult[0].affectedRows == 1 )
+        {
+
+            HandleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
+                "Successfully removed the Asset record from the DB ");
+        }
+        else
+        {
+
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Couldn't remove Assets Record from the required table");
+        }
+
+    }
+
+    catch(exception)
+    {
+        
+        HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while removing the Asset Record = " + exception.message);
+    }
+    
+}
+
+
+module.exports = {retrieveAuctions, deleteAssetRecord};
 

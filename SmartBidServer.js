@@ -170,6 +170,12 @@ async function processSmartBidInputGETRequests(queryParserPathName, queryParserQ
 
                 break;
 
+            case "/DeleteAsset" :
+
+                await retrieveAuctionsModule.deleteAssetRecord(mySqlConnection, queryParserQueryData, httpResponse);
+
+                break;
+
             case "/AddMembership" :
 
                 await membershipRecordCRUDModule.createMembershipsDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
