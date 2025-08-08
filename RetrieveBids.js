@@ -45,19 +45,20 @@ async function retrieveBid(mySqlConnection, inputQueryRecord, httpResponse)
 }
 
 
-async function deleteBidRecord(mySqlConnection, inputQueryRecord, httpResponse)
+async function deleteBidRecords(mySqlConnection, inputQueryRecord, httpResponse)
 {
+
     try
     {
 
         // Validate the Incoming Request
 
         if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
-            ( !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.closeBidRequiredValues) ))
+            !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.retrieveBidRequiredValues) )
         {
 
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
-                "Bad request from client...One or more missing Bid Record Input values");
+                "Bad request from client...One or more missing Delete Bids Record Input values");
 
             return;
 
@@ -65,37 +66,25 @@ async function deleteBidRecord(mySqlConnection, inputQueryRecord, httpResponse)
 
         // Process the Incoming Request
         
-        var mySqlDeleteBidQuery = 'Delete from Bids where BidId = "' + inputQueryRecord.BidId + '"';
-        
-        let mySqlDeleteBidResult = await mySqlConnection.execute( mySqlDeleteBidQuery );
+        var mySqlDeleteBidsQuery = 'delete from bids where AssetId = ' + inputQueryRecord.AssetId;
 
-        LoggerUtilModule.logInformation("Successfully deleted the Bid Record from Bids table...No Of affected Rows = " + 
-            mySqlDeleteBidResult[0].affectedRows);
+        let mySqlDeleteBidsResult = await mySqlConnection.execute( mySqlDeleteBidsQuery );
 
-        if( mySqlDeleteBidResult[0].affectedRows == 1 )
-        {
+        LoggerUtilModule.logInformation("Successfully Deleted the Bids from Bids table...No Of affected Rows = " + 
+            mySqlDeleteBidsResult[0].affectedRows);
 
-            HandleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
-                "Successfully removed the Bid record from the DB ");
-        }
-        else
-        {
-
-            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
-                "Couldn't remove Bids Record from the required table");
-        }
-
+        httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
+        httpResponse.end(JSON.stringify(mySqlDeleteBidsResult[0]));
     }
 
     catch(exception)
     {
         
         HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
-            "Error occured while removing the Bid Record = " + exception.message);
+            "Error occured while deleting the Bids = " + exception.message);
     }
-    
 }
 
 
-module.exports = {retrieveBid, deleteBidRecord};
+module.exports = {retrieveBid, deleteBidRecords};
 
