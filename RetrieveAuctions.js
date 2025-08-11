@@ -13,7 +13,8 @@ async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
         // Validate the Incoming Request
 
         if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
-            !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.retrieveAuctionsRequiredValues) )
+            ( (inputQueryRecord.Status == null || inputQueryRecord.Status == undefined) &&
+            (inputQueryRecord.SellerCustomerId == null || inputQueryRecord.SellerCustomerId == undefined) ) )
         {
 
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
@@ -27,9 +28,20 @@ async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
         
         var mySqlRetrieveAuctionsQuery = 'Select * from assets where Status = "' + inputQueryRecord.Status + '"';
 
-        if( inputQueryRecord.SellerCustomerId != undefined )
+        if( inputQueryRecord.SellerCustomerId == null || inputQueryRecord.SellerCustomerId == undefined )
         {
-            mySqlRetrieveAuctionsQuery += ' and SellerCustomerId = ' + inputQueryRecord.SellerCustomerId;
+            mySqlRetrieveAuctionsQuery = 'Select * from assets where Status = "' + inputQueryRecord.Status + '"';
+        }
+
+        else if( inputQueryRecord.Status == null || inputQueryRecord.Status == undefined )
+        {
+            mySqlRetrieveAuctionsQuery = 'Select * from assets where SellerCustomerId = ' + inputQueryRecord.SellerCustomerId;
+        }
+
+        else
+        {
+            mySqlRetrieveAuctionsQuery = 'Select * from assets where Status = "' + inputQueryRecord.Status + '"' +
+             ' and SellerCustomerId = ' + inputQueryRecord.SellerCustomerId;
         }
 
         let mySqlRetrieveAuctionsResult = await mySqlConnection.execute( mySqlRetrieveAuctionsQuery );
