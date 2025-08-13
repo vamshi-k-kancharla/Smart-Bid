@@ -20,6 +20,8 @@ async function authenticateUserCredentials(mySqlConnection, inputCustomerRecord,
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing User Authentication Record Input values");
 
+            mySqlConnection.end();                
+
             return;
 
         }
@@ -56,12 +58,18 @@ async function authenticateUserCredentials(mySqlConnection, inputCustomerRecord,
 
                 httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
                 httpResponse.end(JSON.stringify(myPasswordRetrieveQueryResults[0]));
+
+                mySqlConnection.end();                
+
             }
             else
             {
 
                 HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                     "Couldn't retrieve auth details for the given email address");
+
+                mySqlConnection.end();                
+
             }
         }
 
@@ -70,6 +78,8 @@ async function authenticateUserCredentials(mySqlConnection, inputCustomerRecord,
 
             HandleHttpResponseModule.returnUnauthorizedHttpResponse(httpResponse, 
                 "passwords didn't match....bailing out with unauthorized error");
+            mySqlConnection.end();                
+
         }
 
     }
@@ -79,6 +89,8 @@ async function authenticateUserCredentials(mySqlConnection, inputCustomerRecord,
 
         HandleHttpResponseModule.returnUnauthorizedHttpResponse(httpResponse, 
             "Error occured while Authenticating user = " + exception.message);
+
+        mySqlConnection.end();                
 
     }
 }

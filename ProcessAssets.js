@@ -36,6 +36,9 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
         {
             
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, returnMessage);
+
+            mySqlConnection.end();                
+
             return;
         }
 
@@ -46,6 +49,8 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
         {
             
             HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, returnMessage);
+            mySqlConnection.end();                
+
             return;
         }
 
@@ -137,12 +142,18 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
 
             HandleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
                 "Successfully updated asset details to assets table record");
+
+            mySqlConnection.end();                
+
         }
         else
         {
 
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad Request...wrong asset details input update request");
+
+            mySqlConnection.end();                
+
         }
 
     }
@@ -152,6 +163,8 @@ async function processAssetAdditions(mySqlConnection, httpRequest, httpResponse)
 
         HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while adding Assets & asset files to the DB = " + exception.message);
+
+        mySqlConnection.end();                
 
     }
 }

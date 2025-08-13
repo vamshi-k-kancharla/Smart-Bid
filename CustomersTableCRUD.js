@@ -19,6 +19,8 @@ async function createCustomersDBRecord(mySqlConnection, inputCustomerRecord, htt
             handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing User Record Input values");
 
+            mySqlConnection.end();                
+
             return;
         }
 
@@ -32,6 +34,9 @@ async function createCustomersDBRecord(mySqlConnection, inputCustomerRecord, htt
 
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while adding customer record to the DB = " + exception.message);
+
+        mySqlConnection.end();                
+
     }
 }
 
@@ -60,6 +65,9 @@ async function checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomer
 
             handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Customer Record with the given email address/phone number already exists");
+
+            mySqlConnection.end();                
+
         }
 
     }
@@ -69,6 +77,9 @@ async function checkTheUniquenessOfCustomerRecord(mySqlConnection, inputCustomer
 
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while Querying for customer record = " + exception.message);
+
+        mySqlConnection.end();                
+
     }
 }
 
@@ -106,12 +117,18 @@ async function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpRe
 
             handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
                 "Successfully added the customer records to the DB ");
+
+            mySqlConnection.end();                
+
         }
         else
         {
 
             handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Couldn't add Customers DB Record to the required table");
+
+            mySqlConnection.end();                
+
         }
 
     }
@@ -120,6 +137,9 @@ async function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpRe
     {
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while adding customer record to the DB = " + exception.message);
+
+        mySqlConnection.end();                
+
     }
 }
 

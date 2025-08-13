@@ -19,6 +19,8 @@ async function retrieveBid(mySqlConnection, inputQueryRecord, httpResponse)
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing Retrieve Bids Record Input values");
 
+            mySqlConnection.end();                
+
             return;
 
         }
@@ -34,6 +36,9 @@ async function retrieveBid(mySqlConnection, inputQueryRecord, httpResponse)
 
         httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
         httpResponse.end(JSON.stringify(mySqlRetrieveBidsResult[0]));
+
+        mySqlConnection.end();                
+
     }
 
     catch(exception)
@@ -41,6 +46,9 @@ async function retrieveBid(mySqlConnection, inputQueryRecord, httpResponse)
         
         HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while retrieving the Bids = " + exception.message);
+
+        mySqlConnection.end();                
+
     }
 }
 
@@ -60,6 +68,8 @@ async function deleteBidRecords(mySqlConnection, inputQueryRecord, httpResponse)
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing Delete Bids Record Input values");
 
+            mySqlConnection.end();                
+
             return;
 
         }
@@ -75,6 +85,9 @@ async function deleteBidRecords(mySqlConnection, inputQueryRecord, httpResponse)
 
         httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
         httpResponse.end(JSON.stringify(mySqlDeleteBidsResult[0]));
+
+        mySqlConnection.end();                
+
     }
 
     catch(exception)
@@ -82,6 +95,9 @@ async function deleteBidRecords(mySqlConnection, inputQueryRecord, httpResponse)
         
         HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while deleting the Bids = " + exception.message);
+
+        mySqlConnection.end();                
+
     }
 }
 

@@ -20,6 +20,8 @@ async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing Retrieve Auctions Record Input values");
 
+            mySqlConnection.end();                
+
             return;
 
         }
@@ -51,6 +53,9 @@ async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
 
         httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
         httpResponse.end(JSON.stringify(mySqlRetrieveAuctionsResult[0]));
+
+        mySqlConnection.end();                
+
     }
 
     catch(exception)
@@ -58,6 +63,9 @@ async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
         
         HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while retrieving the auctions = " + exception.message);
+
+        mySqlConnection.end();                
+
     }
 }
 
@@ -75,6 +83,8 @@ async function deleteAssetRecord(mySqlConnection, inputQueryRecord, httpResponse
 
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing Asset Record Input values");
+
+            mySqlConnection.end();                
 
             return;
 
@@ -94,12 +104,17 @@ async function deleteAssetRecord(mySqlConnection, inputQueryRecord, httpResponse
 
             HandleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
                 "Successfully removed the Asset record from the DB ");
+
+            mySqlConnection.end();                
+
         }
         else
         {
 
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Couldn't remove Assets Record from the required table");
+            mySqlConnection.end();                
+
         }
 
     }
@@ -109,6 +124,9 @@ async function deleteAssetRecord(mySqlConnection, inputQueryRecord, httpResponse
         
         HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while removing the Asset Record = " + exception.message);
+
+        mySqlConnection.end();                
+
     }
     
 }

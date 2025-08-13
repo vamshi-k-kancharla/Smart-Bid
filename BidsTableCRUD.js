@@ -19,6 +19,8 @@ async function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
             handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing Bid Record Input values");
 
+            mySqlConnection.end();
+
             return;
         }
 
@@ -30,6 +32,9 @@ async function createBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
     {
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while adding bid record to the Table = " + exception.message);
+
+        mySqlConnection.end();
+
     }
 }
 
@@ -61,6 +66,8 @@ async function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord,
             handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bid Record with the given values already exists");
 
+            mySqlConnection.end();
+
         }
     }
 
@@ -68,7 +75,10 @@ async function checkForExistenceAndAddBidRecord(mySqlConnection, inputBidRecord,
     {
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while checking for existence of bid record = " + exception.message);
+
+        mySqlConnection.end();
     }
+
 }
 
 
@@ -139,6 +149,9 @@ async function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 
         handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
             "Successfully placed the bid for current asset");
+
+        mySqlConnection.end();
+
     }
 
     catch(exception)
@@ -148,6 +161,8 @@ async function addBidsDBRecord(mySqlConnection, inputBidRecord, httpResponse)
 
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while adding bid record to the Table = " + exception.message);
+
+        mySqlConnection.end();
     }
 }
 

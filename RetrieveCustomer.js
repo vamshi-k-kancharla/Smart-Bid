@@ -20,6 +20,8 @@ async function retrieveCustomer(mySqlConnection, inputQueryRecord, httpResponse)
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing Retrieve Customers Record Input values");
 
+            mySqlConnection.end();                
+
             return;
 
         }
@@ -37,6 +39,9 @@ async function retrieveCustomer(mySqlConnection, inputQueryRecord, httpResponse)
 
         httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
         httpResponse.end(JSON.stringify(mySqlRetrieveCustomersResult[0]));
+
+        mySqlConnection.end();                
+
     }
 
     catch(exception)
@@ -44,6 +49,9 @@ async function retrieveCustomer(mySqlConnection, inputQueryRecord, httpResponse)
         
         HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while retrieving the Customer Record = " + exception.message);
+
+        mySqlConnection.end();                
+
     }
 }
 
@@ -61,6 +69,8 @@ async function deleteCustomerRecord(mySqlConnection, inputQueryRecord, httpRespo
 
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing Customer Record Input values");
+
+            mySqlConnection.end();                
 
             return;
 
@@ -82,12 +92,16 @@ async function deleteCustomerRecord(mySqlConnection, inputQueryRecord, httpRespo
 
             HandleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
                 "Successfully removed the customer record from the DB ");
+            mySqlConnection.end();                
+
         }
         else
         {
 
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Couldn't remove Customers DB Record from the required table");
+            mySqlConnection.end();                
+
         }
 
     }
@@ -97,6 +111,9 @@ async function deleteCustomerRecord(mySqlConnection, inputQueryRecord, httpRespo
         
         HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while removing the Customer Record = " + exception.message);
+
+        mySqlConnection.end();                
+
     }
     
 }

@@ -20,6 +20,8 @@ async function createMembershipsDBRecord(mySqlConnection, inputMembershipRecord,
             handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing Membership Record Input values");
 
+            mySqlConnection.end();                
+
             return;
         }
 
@@ -32,6 +34,8 @@ async function createMembershipsDBRecord(mySqlConnection, inputMembershipRecord,
     {
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while adding membership record to the DB = " + exception.message);
+
+        mySqlConnection.end();                
     }
 }
 
@@ -63,12 +67,18 @@ async function addMembershipsDBRecord(mySqlConnection, inputMembershipRecord, ht
 
             handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
                 "Successfully added membership table record");
+
+            mySqlConnection.end();                
+
         }
         else
         {
 
             handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad Request...wrong membership input add request ");
+
+            mySqlConnection.end();                
+
         }
 
     }
@@ -77,6 +87,9 @@ async function addMembershipsDBRecord(mySqlConnection, inputMembershipRecord, ht
     {
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while adding membership record to the DB...Caught exception => " + exception.message);
+
+        mySqlConnection.end();                
+
     }
 }
 

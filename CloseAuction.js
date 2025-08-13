@@ -21,6 +21,8 @@ async function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
             handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing Close Auction Record Input values");
 
+            mySqlConnection.end();                
+
             return;
         }
 
@@ -43,6 +45,8 @@ async function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
                 handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
                     "Error occured retrieving the email addresses & subject / message of the closed auction");
 
+                mySqlConnection.end();                
+
                 return;
             }
 
@@ -64,11 +68,15 @@ async function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
                 handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
                     "Error occured while sending the notification to seller and buyer");
 
+                mySqlConnection.end();                
+
                 return;
             }
 
             handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
                 "Successfully closed the auction through assets table & notification sent");
+
+            mySqlConnection.end();                
 
         }
         else
@@ -76,6 +84,9 @@ async function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
 
             handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad Request...No Auction has gotten closed ");
+
+            mySqlConnection.end();                
+
         }
 
     }
@@ -84,6 +95,8 @@ async function closeAuction(mySqlConnection, inputQueryRecord, httpResponse)
     {
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while closing the auction => " + exception.message);
+
+        mySqlConnection.end();                
     }
 }
 

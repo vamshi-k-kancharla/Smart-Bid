@@ -19,6 +19,8 @@ async function retrieveCustomerAuctionsAndBids(mySqlConnection, inputQueryRecord
             HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
                 "Bad request from client...One or more missing Customer Auctions and Bids Record Input values");
 
+            mySqlConnection.end();                
+
             return;
 
         }
@@ -91,6 +93,8 @@ async function retrieveCustomerAuctionsAndBids(mySqlConnection, inputQueryRecord
         httpResponse.writeHead( 200, {'content-type' : 'text/plain'});
         httpResponse.end(JSON.stringify(myAuctionsAndBidsResult));
 
+        mySqlConnection.end();                
+
     }
 
     catch(exception)
@@ -98,6 +102,9 @@ async function retrieveCustomerAuctionsAndBids(mySqlConnection, inputQueryRecord
         
         HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error occured while retrieving the customer auctions and bids = " + exception.message);
+
+        mySqlConnection.end();                
+
     }
 }
 

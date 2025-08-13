@@ -50,6 +50,8 @@ httpClientModule.createServer( async (httpRequest, httpResponse) =>
         if(queryParserPathName.indexOf("favicon.ico") != -1){
             
             handleHttpResponseModule.returnSuccessHttpResponse(httpResponse, "favicon input request received...Sending back the response");
+
+            mySqlConnection.end();
             return;
         }
 
@@ -58,8 +60,6 @@ httpClientModule.createServer( async (httpRequest, httpResponse) =>
         if( queryParserPathName == "/UploadAuctionPhotos" )
         {
             await processAssetsModule.processAssetAdditions(mySqlConnection, httpRequest, httpResponse);
-
-            return;
         }
 
         // Process POST Requests
@@ -82,7 +82,7 @@ httpClientModule.createServer( async (httpRequest, httpResponse) =>
                 {
                     LoggerUtilModule.logInformation("Total Data chunk = " + httpRequestBody);
 
-                        await processSmartBidInputPOSTRequests(queryParserPathName, JSON.parse(httpRequestBody), mySqlConnection, httpResponse);
+                    await processSmartBidInputPOSTRequests(queryParserPathName, JSON.parse(httpRequestBody), mySqlConnection, httpResponse);
                 }
                 catch(exception)
                 {
@@ -99,13 +99,17 @@ httpClientModule.createServer( async (httpRequest, httpResponse) =>
 
             await processSmartBidInputGETRequests(queryParserPathName, queryParserQueryData, mySqlConnection, httpResponse);
         }
+
     }
+
     catch(exception)
     {
         LoggerUtilModule.logInformation("Error while processing http input requests => " + exception.message);
 
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error while processing http input requests => " + exception.message);
+
+        mySqlConnection.end();
 
     }
 
@@ -199,6 +203,8 @@ async function processSmartBidInputGETRequests(queryParserPathName, queryParserQ
 
                 handleHttpResponseModule.returnNotFoundHttpResponse(httpResponse, "Input Client request not found");
 
+                mySqlConnection.end();                
+
                 break;
         }
 
@@ -209,6 +215,8 @@ async function processSmartBidInputGETRequests(queryParserPathName, queryParserQ
 
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error while processing http GET input requests => " + exception.message);
+
+        mySqlConnection.end();
     }
 
 }
@@ -239,6 +247,8 @@ async function processSmartBidInputPOSTRequests(queryParserPathName, inputJsonDa
 
                 handleHttpResponseModule.returnNotFoundHttpResponse(httpResponse, "Input Client request not found");
 
+                mySqlConnection.end();                
+
                 break;
 
         }
@@ -250,6 +260,9 @@ async function processSmartBidInputPOSTRequests(queryParserPathName, inputJsonDa
 
         handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
             "Error while processing http POST input requests => " + exception.message);
+
+        mySqlConnection.end();
+
     }
 
 }
