@@ -41,6 +41,8 @@ const retrieveCustomerRequiredValues2 = [ "EmailAddress" ];
 
 const retrieveBidRequiredValues = [ "AssetId" ];
 
+const feedbackRecordRequiredValues = ["CustomerName", "EmailAddress", "Subject", "Message"];
+
 
 // Notification Related Global Objects
 
@@ -77,5 +79,7 @@ module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformatio
     imagesDirectory, videosDirectory,
 
     emailNotificationSender, emailTransportObject,
+
+    feedbackRecordRequiredValues,
 };
 

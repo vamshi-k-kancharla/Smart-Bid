@@ -14,6 +14,8 @@ const processAssetsModule = require("./ProcessAssets.js");
 const customerAuctionsAndBidsModule = require('./CustomerAuctionsAndBids.js');
 const retrieveCustomerModule = require('./RetrieveCustomer.js');
 const retrieveBidsModule = require('./RetrieveBids.js');
+const feedbackTableCRUDModule = require('./FeedbackTableCRUD.js');
+
 
 const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
@@ -199,6 +201,12 @@ async function processSmartBidInputGETRequests(queryParserPathName, queryParserQ
 
                 break;
 
+            case "/AddFeedback" :
+
+                await feedbackTableCRUDModule.createFeedbackDBRecord(mySqlConnection, queryParserQueryData, httpResponse);
+
+                break;
+
             default:
 
                 handleHttpResponseModule.returnNotFoundHttpResponse(httpResponse, "Input Client request not found");
@@ -240,6 +248,12 @@ async function processSmartBidInputPOSTRequests(queryParserPathName, inputJsonDa
             case "/AddCustomer" :
 
                 await customersRecordCRUDModule.createCustomersDBRecord(mySqlConnection, inputJsonData, httpResponse);
+
+                break;
+
+            case "/AddFeedback" :
+
+                await feedbackTableCRUDModule.createFeedbackDBRecord(mySqlConnection, inputJsonData, httpResponse);
 
                 break;
 
