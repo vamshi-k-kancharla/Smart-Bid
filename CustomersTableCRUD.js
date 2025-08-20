@@ -4,7 +4,9 @@ const GlobalsForServerModule = require("./HelperUtils/GlobalsForServer.js");
 const InputValidatorModule = require("./HelperUtils/InputValidator.js");
 const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
+const emailNotificationModule = require("./EmailNotification.js");
 
+// Create Customer DB Record
 
 async function createCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse)
 {
@@ -143,6 +145,65 @@ async function addCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpRe
     }
 }
 
+// Send OTP to the required Customer
 
-module.exports = {createCustomersDBRecord};
+async function sendOTPToInputCustomer(mySqlConnection, inputCustomerRecord, httpResponse)
+{
+    try
+    {
+        // Validate the Incoming Request
+
+        if( !InputValidatorModule.validateUserInputObjectValue(inputCustomerRecord) ||
+            !InputValidatorModule.validateUserInputObject(inputCustomerRecord, GlobalsForServerModule.customerRecordForOTPRequiredValues) )
+        {
+
+            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad request from client...Email Address of Customer is missing from Input values");
+
+            mySqlConnection.end();                
+
+            return;
+        }
+
+        // Validate the existence of given email address 
+
+        var mySqlCustomerDBRecordCheckEmailAddress = 'select * from customers where EmailAddress = "' + 
+                inputCustomerRecord.EmailAddress + '"';
+
+        LoggerUtilModule.logInformation("Customer DB Record Email Address check Query = " + mySqlCustomerDBRecordCheckEmailAddress);
+
+        let customersEmailAddressCheckResult = await mySqlConnection.execute( mySqlCustomerDBRecordCheckEmailAddress );
+
+        LoggerUtilModule.logInformation("Successfully retrieved the Customers Record from customers table...No Of Records = " + 
+            customersEmailAddressCheckResult[0].length);
+
+        if( customersEmailAddressCheckResult[0].length != 1 )
+        {
+
+            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Customer Record with the given email address doesn't exist");
+
+            mySqlConnection.end();                
+
+        }
+        else
+        {
+
+            await emailNotificationModule.sendOTPNotificationToInputCustomer(mySqlConnection, inputCustomerRecord, httpResponse);
+        }
+
+    }
+
+    catch(exception)
+    {
+
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while sending OTP to the customer = " + exception.message);
+
+        mySqlConnection.end();                
+
+    }
+}
+
+module.exports = {createCustomersDBRecord, sendOTPToInputCustomer};
 

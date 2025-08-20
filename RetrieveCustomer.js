@@ -118,5 +118,67 @@ async function deleteCustomerRecord(mySqlConnection, inputQueryRecord, httpRespo
     
 }
 
-module.exports = {retrieveCustomer, deleteCustomerRecord};
+// Update Customer Record 
+
+async function updateCustomersDBRecord(mySqlConnection, inputCustomerRecord, httpResponse, inputRecordKeys)
+{
+    try
+    {
+
+        // Process the Incoming Request
+            
+        var customerRecordUpdateValues = "";
+
+        for( let i = 0 ; i < inputRecordKeys.length; i++ )
+        {
+            customerRecordUpdateValues += inputRecordKeys[i] + " = " + inputCustomerRecord[inputRecordKeys[i]];
+
+            if( i != inputRecordKeys.length - 1 )
+            {
+                customerRecordUpdateValues += " , ";
+            }
+        }
+
+        LoggerUtilModule.logInformation("customer DB Update Record Values = " + customerRecordUpdateValues);
+
+        var mySqlCustomerDBRecordUpdate = "Update customers set " + customerRecordUpdateValues + " where EmailAddress = '" +
+                                        inputCustomerRecord.EmailAddress + "'";
+
+        LoggerUtilModule.logInformation("Customer DB Update Record Query = " + mySqlCustomerDBRecordUpdate);
+
+        let mySqlCustomersUpdateRecord = await mySqlConnection.execute( mySqlCustomerDBRecordUpdate );
+
+        if( mySqlCustomersUpdateRecord[0].affectedRows == 1 )
+        {
+
+            HandleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
+                "Successfully updated the customer record to the DB ");
+
+            mySqlConnection.end();                
+
+        }
+        else
+        {
+
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Couldn't Update Customers DB Record to the required table");
+
+            mySqlConnection.end();                
+
+        }
+
+    }
+
+    catch(exception)
+    {
+        HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while updating customer record to the DB = " + exception.message);
+
+        mySqlConnection.end();                
+
+    }
+}
+
+
+module.exports = {retrieveCustomer, deleteCustomerRecord, updateCustomersDBRecord};
 

@@ -43,6 +43,8 @@ const retrieveBidRequiredValues = [ "AssetId" ];
 
 const feedbackRecordRequiredValues = ["CustomerName", "EmailAddress", "Subject", "Message"];
 
+const customerRecordForOTPRequiredValues = ["EmailAddress"];
+
 
 // Notification Related Global Objects
 
@@ -63,6 +65,10 @@ const emailTransportObject = {
 
 const emailNotificationSender = 'smartbid.notification@gmail.com';
 
+const emailNotificationSendOTPSubject = "OTP to reset the password";
+
+const emailNotificationSendOTPMessage = "Please do find the required 6-digit OTP to reset the password => ";
+
 
 // Module exports
 
@@ -73,12 +79,14 @@ module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformatio
     membershipRecordRequiredValues, 
     
     customerAuctionsAndBidsRequiredValues, retrieveCustomerRequiredValues, retrieveCustomerRequiredValues2,
+    customerRecordForOTPRequiredValues, 
 
     retrieveBidRequiredValues,
     
     imagesDirectory, videosDirectory,
 
     emailNotificationSender, emailTransportObject,
+    emailNotificationSendOTPSubject, emailNotificationSendOTPMessage,
 
     feedbackRecordRequiredValues,
 };

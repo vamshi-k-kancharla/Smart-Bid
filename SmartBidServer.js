@@ -207,6 +207,12 @@ async function processSmartBidInputGETRequests(queryParserPathName, queryParserQ
 
                 break;
 
+            case "/SendOTPToCustomer" :
+
+                await customersRecordCRUDModule.sendOTPToInputCustomer(mySqlConnection, queryParserQueryData, httpResponse);
+
+                break;
+
             default:
 
                 handleHttpResponseModule.returnNotFoundHttpResponse(httpResponse, "Input Client request not found");
