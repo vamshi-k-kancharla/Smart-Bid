@@ -213,6 +213,12 @@ async function processSmartBidInputGETRequests(queryParserPathName, queryParserQ
 
                 break;
 
+            case "/ValidateCustomerOTP" :
+
+                await retrieveCustomerModule.validateCustomerOTPForPasswordReset(mySqlConnection, queryParserQueryData, httpResponse);
+
+                break;
+
             default:
 
                 handleHttpResponseModule.returnNotFoundHttpResponse(httpResponse, "Input Client request not found");
@@ -260,6 +266,12 @@ async function processSmartBidInputPOSTRequests(queryParserPathName, inputJsonDa
             case "/AddFeedback" :
 
                 await feedbackTableCRUDModule.createFeedbackDBRecord(mySqlConnection, inputJsonData, httpResponse);
+
+                break;
+
+            case "/ResetNewPassword" :
+
+                await retrieveCustomerModule.updateCustomersDBRecord(mySqlConnection, inputJsonData, httpResponse, ["Password"]);
 
                 break;
 

@@ -4,6 +4,8 @@ const InputValidatorModule = require("./HelperUtils/InputValidator.js");
 const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 const HandleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
+const bCryptHashModule = require('bcryptjs');
+
 
 async function retrieveCustomer(mySqlConnection, inputQueryRecord, httpResponse)
 {
@@ -131,7 +133,22 @@ async function updateCustomersDBRecord(mySqlConnection, inputCustomerRecord, htt
 
         for( let i = 0 ; i < inputRecordKeys.length; i++ )
         {
-            customerRecordUpdateValues += inputRecordKeys[i] + " = " + inputCustomerRecord[inputRecordKeys[i]];
+
+            if(inputRecordKeys[i] == "Password")
+            {
+
+                customerRecordUpdateValues += inputRecordKeys[i] + " = '" + 
+                    bCryptHashModule.hashSync(atob(inputCustomerRecord.Password), 
+                        bCryptHashModule.genSaltSync(GlobalsForServerModule.hashGenerationSalt)) + "'";
+
+            }
+
+            else
+            {
+    
+                customerRecordUpdateValues += inputRecordKeys[i] + " = " + inputCustomerRecord[inputRecordKeys[i]];
+
+            }
 
             if( i != inputRecordKeys.length - 1 )
             {
@@ -179,6 +196,72 @@ async function updateCustomersDBRecord(mySqlConnection, inputCustomerRecord, htt
     }
 }
 
+// Validate Current OTP of customer
 
-module.exports = {retrieveCustomer, deleteCustomerRecord, updateCustomersDBRecord};
+async function validateCustomerOTPForPasswordReset(mySqlConnection, inputQueryRecord, httpResponse)
+{
+    try
+    {
+
+        // Validate the Incoming Request
+
+        if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
+            !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.validateCustomerOTPRequiredValues) )
+        {
+
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad request from client...One or more missing Customers Record Input values for OTP Validation");
+
+            mySqlConnection.end();                
+
+            return;
+
+        }
+
+        // Process the Incoming Request
+        
+        var mySqlRetrieveCustomersQuery = 'Select * from customers where EmailAddress = "' + inputQueryRecord.EmailAddress + '"';
+
+        let mySqlRetrieveCustomersResult = await mySqlConnection.execute( mySqlRetrieveCustomersQuery );
+
+        LoggerUtilModule.logInformation("Successfully retrieved the Customer Record from Customers table...No Of Records = " + 
+            mySqlRetrieveCustomersResult[0].length);
+
+        if( mySqlRetrieveCustomersResult[0].length == 1 && mySqlRetrieveCustomersResult[0][0].currentOTP == inputQueryRecord.currentOTP )
+        {
+
+            LoggerUtilModule.logInformation( "Current OTP of the customer record successfully matched with the existing OTP = " + 
+                inputQueryRecord.currentOTP );
+
+            HandleHttpResponseModule.returnSuccessHttpResponse(httpResponse, 
+                "Successfully validated the current OTP of the customer");
+
+            mySqlConnection.end();                
+
+        }
+        else
+        {
+
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Couldn't validate the current OTP of the customer..please retry");
+
+            mySqlConnection.end();                
+
+        }
+    }
+
+    catch(exception)
+    {
+        
+        HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while retrieving the Customer Record for OTP validation = " + exception.message);
+
+        mySqlConnection.end();                
+
+    }
+
+}
+
+
+module.exports = {retrieveCustomer, deleteCustomerRecord, updateCustomersDBRecord, validateCustomerOTPForPasswordReset};
 

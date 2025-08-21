@@ -45,6 +45,8 @@ const feedbackRecordRequiredValues = ["CustomerName", "EmailAddress", "Subject",
 
 const customerRecordForOTPRequiredValues = ["EmailAddress"];
 
+const validateCustomerOTPRequiredValues = ["EmailAddress", "currentOTP"];
+
 
 // Notification Related Global Objects
 
@@ -79,7 +81,7 @@ module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformatio
     membershipRecordRequiredValues, 
     
     customerAuctionsAndBidsRequiredValues, retrieveCustomerRequiredValues, retrieveCustomerRequiredValues2,
-    customerRecordForOTPRequiredValues, 
+    customerRecordForOTPRequiredValues, validateCustomerOTPRequiredValues,
 
     retrieveBidRequiredValues,
     
