@@ -5,71 +5,6 @@ const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 const HandleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
 
-async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
-{
-    try
-    {
-
-        // Validate the Incoming Request
-
-        if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
-            ( (inputQueryRecord.Status == null || inputQueryRecord.Status == undefined) &&
-            (inputQueryRecord.SellerCustomerId == null || inputQueryRecord.SellerCustomerId == undefined) ) )
-        {
-
-            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
-                "Bad request from client...One or more missing Retrieve Auctions Record Input values");
-
-            mySqlConnection.end();                
-
-            return;
-
-        }
-
-        // Process the Incoming Request
-        
-        var mySqlRetrieveAuctionsQuery = 'Select * from assets where Status = "' + inputQueryRecord.Status + '"';
-
-        if( inputQueryRecord.SellerCustomerId == null || inputQueryRecord.SellerCustomerId == undefined )
-        {
-            mySqlRetrieveAuctionsQuery = 'Select * from assets where Status = "' + inputQueryRecord.Status + '"';
-        }
-
-        else if( inputQueryRecord.Status == null || inputQueryRecord.Status == undefined )
-        {
-            mySqlRetrieveAuctionsQuery = 'Select * from assets where SellerCustomerId = ' + inputQueryRecord.SellerCustomerId;
-        }
-
-        else
-        {
-            mySqlRetrieveAuctionsQuery = 'Select * from assets where Status = "' + inputQueryRecord.Status + '"' +
-             ' and SellerCustomerId = ' + inputQueryRecord.SellerCustomerId;
-        }
-
-        let mySqlRetrieveAuctionsResult = await mySqlConnection.execute( mySqlRetrieveAuctionsQuery );
-
-        LoggerUtilModule.logInformation("Successfully retrieved the auctions from assets table...No Of Records = " + 
-            mySqlRetrieveAuctionsResult[0].length);
-
-        httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
-        httpResponse.end(JSON.stringify(mySqlRetrieveAuctionsResult[0]));
-
-        mySqlConnection.end();                
-
-    }
-
-    catch(exception)
-    {
-        
-        HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
-            "Error occured while retrieving the auctions = " + exception.message);
-
-        mySqlConnection.end();                
-
-    }
-}
-
-
 async function deleteAssetRecord(mySqlConnection, inputQueryRecord, httpResponse)
 {
     try
@@ -129,6 +64,69 @@ async function deleteAssetRecord(mySqlConnection, inputQueryRecord, httpResponse
 
     }
     
+}
+
+
+async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
+{
+    try
+    {
+
+        // Validate the Incoming Request
+
+        if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
+            !InputValidatorModule.validateUserInputObjectKeysPresence(inputQueryRecord, 
+                GlobalsForServerModule.assetRecordRequiredValues) )
+        {
+
+            HandleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad request from client...One or more missing Retrieve Auctions Record Input values");
+
+            mySqlConnection.end();                
+
+            return;
+
+        }
+
+        // Process the Incoming Request
+
+        var mySqlRetrieveAuctionsQuery = 'Select * from assets where ';
+
+        for( let currentInputKey of Object.keys(inputQueryRecord) )
+        {
+            
+            mySqlRetrieveAuctionsQuery += currentInputKey + ' ="' + inputQueryRecord[currentInputKey] + '"';
+
+            if( Object.keys(inputQueryRecord).indexOf(currentInputKey) != Object.keys(inputQueryRecord).length - 1 )
+            {
+
+                mySqlRetrieveAuctionsQuery += ' and '
+            }
+        }
+
+        console.log("retrieveAuctions2.mySqlRetrieveAuctionsQuery = " + mySqlRetrieveAuctionsQuery);
+
+        let mySqlRetrieveAuctionsResult = await mySqlConnection.execute( mySqlRetrieveAuctionsQuery );
+
+        LoggerUtilModule.logInformation("Successfully retrieved the auctions from assets table...No Of Records = " + 
+            mySqlRetrieveAuctionsResult[0].length);
+
+        httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
+        httpResponse.end(JSON.stringify(mySqlRetrieveAuctionsResult[0]));
+
+        mySqlConnection.end();                
+
+    }
+
+    catch(exception)
+    {
+        
+        HandleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while retrieving the auctions = " + exception.message);
+
+        mySqlConnection.end();                
+
+    }
 }
 
 

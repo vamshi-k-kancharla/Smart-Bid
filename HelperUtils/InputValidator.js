@@ -39,5 +39,29 @@ function validateUserInputObjectValue(userInputObject)
     return true;
 }
 
-module.exports = {validateUserInputValue, validateUserInputObject, validateUserInputObjectValue};
+function validateUserInputObjectKeysPresence(userInputObject, userInputKeys)
+{
+    for( let currentInputKey in userInputObject )
+    {
+        console.log("validateUserInputObjectKeysPresence.currentInputKeyIndex = " + userInputKeys.indexOf(currentInputKey));
+
+        if( userInputKeys.indexOf(currentInputKey) == -1 )
+        {
+            LoggerUtilModule.logInformation("validateUserInputObjectKeysPresence..Unexpected Key Found in inputObject = " + 
+                currentInputKey);
+            return false;
+        }
+
+        if( !validateUserInputValue(userInputObject[currentInputKey]) )
+        {
+
+            LoggerUtilModule.logInformation("validateUserInputObject..value not found for Key = " + currentInputKey);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+module.exports = {validateUserInputValue, validateUserInputObject, validateUserInputObjectValue, validateUserInputObjectKeysPresence};
 
