@@ -41,6 +41,8 @@ const retrieveCustomerRequiredValues2 = [ "EmailAddress" ];
 
 const retrieveBidRequiredValues = [ "AssetId" ];
 
+const retrieveFeedbackRequiredValues = [ "CustomerName" ];
+
 const feedbackRecordRequiredValues = ["CustomerName", "EmailAddress", "Subject", "Message"];
 
 const customerRecordForOTPRequiredValues = ["EmailAddress"];
@@ -90,6 +92,6 @@ module.exports = {mySqlConnectionDBDetails, hashGenerationSalt, bDebugInformatio
     emailNotificationSender, emailTransportObject,
     emailNotificationSendOTPSubject, emailNotificationSendOTPMessage,
 
-    feedbackRecordRequiredValues,
+    feedbackRecordRequiredValues, retrieveFeedbackRequiredValues,
 };
 

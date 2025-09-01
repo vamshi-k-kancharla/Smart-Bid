@@ -92,5 +92,101 @@ async function addFeedbackDBRecord(mySqlConnection, inputFeedbackRecord, httpRes
 }
 
 
-module.exports = {createFeedbackDBRecord};
+async function retrieveFeedbackRecord(mySqlConnection, inputQueryRecord, httpResponse)
+{
+    try
+    {
+
+        // Validate the Incoming Request
+
+        if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
+            !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.retrieveFeedbackRequiredValues) )
+        {
+
+            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad request from client...One or more missing Retrieve Feedback Record Input values");
+
+            mySqlConnection.end();                
+
+            return;
+
+        }
+
+        // Process the Incoming Request
+        
+        var mySqlRetrieveFeedbackQuery = 'Select * from feedback where CustomerName = "' + inputQueryRecord.CustomerName + '"';
+
+        let mySqlRetrieveFeedbackResult = await mySqlConnection.execute( mySqlRetrieveFeedbackQuery );
+
+        LoggerUtilModule.logInformation("Successfully retrieved the Feedback record from feedback table...No Of Records = " + 
+            mySqlRetrieveFeedbackResult[0].length);
+
+        httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
+        httpResponse.end(JSON.stringify(mySqlRetrieveFeedbackResult[0]));
+
+        mySqlConnection.end();                
+
+    }
+
+    catch(exception)
+    {
+        
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while retrieving the feedback = " + exception.message);
+
+        mySqlConnection.end();                
+
+    }
+}
+
+
+async function deleteFeedbackRecord(mySqlConnection, inputQueryRecord, httpResponse)
+{
+
+    try
+    {
+
+        // Validate the Incoming Request
+
+        if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
+            !InputValidatorModule.validateUserInputObject(inputQueryRecord, GlobalsForServerModule.retrieveFeedbackRequiredValues) )
+        {
+
+            handleHttpResponseModule.returnBadRequestHttpResponse(httpResponse, 
+                "Bad request from client...One or more missing Delete Feedback Record Input values");
+
+            mySqlConnection.end();                
+
+            return;
+
+        }
+
+        // Process the Incoming Request
+        
+        var mySqlDeleteFeedbackQuery = 'delete from feedback where CustomerName = "' + inputQueryRecord.CustomerName + '"';
+
+        let mySqlDeleteFeedbackResult = await mySqlConnection.execute( mySqlDeleteFeedbackQuery );
+
+        LoggerUtilModule.logInformation("Successfully Deleted the Feedback Record from feedback table...No Of affected Rows = " + 
+            mySqlDeleteFeedbackResult[0].affectedRows);
+
+        httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
+        httpResponse.end(JSON.stringify(mySqlDeleteFeedbackResult[0]));
+
+        mySqlConnection.end();                
+
+    }
+
+    catch(exception)
+    {
+        
+        handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, 
+            "Error occured while deleting the Feedback Records = " + exception.message);
+
+        mySqlConnection.end();                
+
+    }
+}
+
+module.exports = {createFeedbackDBRecord, retrieveFeedbackRecord, deleteFeedbackRecord};
 

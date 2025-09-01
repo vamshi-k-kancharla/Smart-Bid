@@ -207,6 +207,18 @@ async function processSmartBidInputGETRequests(queryParserPathName, queryParserQ
 
                 break;
 
+            case "/RetrieveFeedback" :
+
+                await feedbackTableCRUDModule.retrieveFeedbackRecord(mySqlConnection, queryParserQueryData, httpResponse);
+
+                break;
+
+            case "/DeleteFeedback" :
+
+                await feedbackTableCRUDModule.deleteFeedbackRecord(mySqlConnection, queryParserQueryData, httpResponse);
+
+                break;
+
             case "/SendOTPToCustomer" :
 
                 await customersRecordCRUDModule.sendOTPToInputCustomer(mySqlConnection, queryParserQueryData, httpResponse);
