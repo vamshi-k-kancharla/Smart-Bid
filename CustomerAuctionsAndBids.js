@@ -78,7 +78,7 @@ async function retrieveCustomerAuctionsAndBids(mySqlConnection, inputQueryRecord
 
             mySqlRetrieveBidsQuery += ')';
 
-            console.log( "retrieveCustomerAuctionsAndBids : mySqlRetrieveBidsQuery => " + mySqlRetrieveBidsQuery );
+            LoggerUtilModule.logInformation( "retrieveCustomerAuctionsAndBids : mySqlRetrieveBidsQuery => " + mySqlRetrieveBidsQuery );
 
             let mySqlRetrieveBidsResult = await mySqlConnection.execute( mySqlRetrieveBidsQuery );
 

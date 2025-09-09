@@ -43,7 +43,7 @@ function validateUserInputObjectKeysPresence(userInputObject, userInputKeys)
 {
     for( let currentInputKey in userInputObject )
     {
-        console.log("validateUserInputObjectKeysPresence.currentInputKeyIndex = " + userInputKeys.indexOf(currentInputKey));
+        LoggerUtilModule.logInformation("validateUserInputObjectKeysPresence.currentInputKeyIndex = " + userInputKeys.indexOf(currentInputKey));
 
         if( userInputKeys.indexOf(currentInputKey) == -1 )
         {

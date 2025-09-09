@@ -104,7 +104,7 @@ async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
             }
         }
 
-        console.log("retrieveAuctions2.mySqlRetrieveAuctionsQuery = " + mySqlRetrieveAuctionsQuery);
+        LoggerUtilModule.logInformation("retrieveAuctions2.mySqlRetrieveAuctionsQuery = " + mySqlRetrieveAuctionsQuery);
 
         let mySqlRetrieveAuctionsResult = await mySqlConnection.execute( mySqlRetrieveAuctionsQuery );
 
