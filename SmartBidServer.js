@@ -1,6 +1,8 @@
 
-const httpClientModule = require('http');
+const httpClientModule = require('https');
 const httpUrlModule = require('url');
+const fileSystemModule = require('fs');
+const pathModule = require('path');
 
 const mySqlConnectionModule = require('./MySqlConnection.js');
 const customersRecordCRUDModule = require('./CustomersTableCRUD.js');
@@ -21,7 +23,24 @@ const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
 
-httpClientModule.createServer( async (httpRequest, httpResponse) =>
+// TLS/SSL options for https client module
+
+const sslOptions =
+{
+    
+    key: fileSystemModule.readFileSync(pathModule.join("./SmartBidNowCertificates/", "smartbidnow.com-PrivateKey.pem")),
+    cert: fileSystemModule.readFileSync(pathModule.join("./SmartBidNowCertificates/", "smartbidnow.com-certificate.crt")),
+
+    minVersion: 'TLSv1.2',
+
+    secureOptions: require('constants').SSL_OP_NO_SSLv3 |
+                   require('constants').SSL_OP_NO_TLSv1 |
+                   require('constants').SSL_OP_NO_TLSv1_1
+
+}
+
+
+httpClientModule.createServer( sslOptions, async (httpRequest, httpResponse) =>
 {
     try
     {
@@ -30,6 +49,19 @@ httpClientModule.createServer( async (httpRequest, httpResponse) =>
         LoggerUtilModule.logInformation("http Request received...");
 
         let queryParserPathName = httpUrlModule.parse(httpRequest.url, true).pathname;
+
+        // Enable CORS Policy
+
+        httpResponse.setHeader("Access-Control-Allow-Origin", "*");
+        httpResponse.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
+        // Enable https response to the client
+
+        httpResponse.setHeader('Strict-Transport-Security', 'max-age=10000000; includeSubDomains');
+        httpResponse.setHeader('X-Content-Type-Options', 'nosniff');
+        httpResponse.setHeader('X-Frame-Options', 'SAMEORIGIN');
+        httpResponse.setHeader('X-XSS-Protection', '1; mode=block');
+        httpResponse.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         // Connect to MySQL DB
         
@@ -41,11 +73,6 @@ httpClientModule.createServer( async (httpRequest, httpResponse) =>
             handleHttpResponseModule.returnServerFailureHttpResponse(httpResponse, "Unable to connect to MySQL DB...Bailing out");
             return;
         }
-
-        // Enable CORS Policy
-
-        httpResponse.setHeader("Access-Control-Allow-Origin", "*");
-        httpResponse.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 
         // Return back for Favicon Request
 

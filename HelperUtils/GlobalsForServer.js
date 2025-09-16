@@ -11,7 +11,7 @@ const mySqlConnectionDBDetails = {
 // Globals
 
 const hashGenerationSalt = 5;
-const bDebugInformation = false;
+const bDebugInformation = true;
 
 const imagesDirectory = ".\\AssetImages\\";
 const videosDirectory = ".\\AssetVideos\\";
