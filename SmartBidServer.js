@@ -22,14 +22,22 @@ const feedbackTableCRUDModule = require('./FeedbackTableCRUD.js');
 const LoggerUtilModule = require("./HelperUtils/LoggerUtil.js");
 const handleHttpResponseModule = require("./HelperUtils/HandleHttpResponse.js");
 
+const smartBid_BuidEnvironment = process.env.SMARTBID_BUILD;
+
+console.log("SmartBidServer : smartBid_BuidEnvironment = " + smartBid_BuidEnvironment);
+
 
 // TLS/SSL options for https client module
 
 const sslOptions =
 {
     
-    key: fileSystemModule.readFileSync(pathModule.join("./SmartBidNowCertificates/", "smartbidnow.com-PrivateKey.pem")),
-    cert: fileSystemModule.readFileSync(pathModule.join("./SmartBidNowCertificates/", "smartbidnow.com-certificate.crt")),
+    key: ( smartBid_BuidEnvironment == "DEV" ) ? 
+         fileSystemModule.readFileSync(pathModule.join("./SmartBidNowCertificates/", "SelfSignedCertKey.pem")) :
+         fileSystemModule.readFileSync(pathModule.join("./SmartBidNowCertificates/", "smartbidnow.com-PrivateKey.pem")),
+    cert: ( smartBid_BuidEnvironment == "DEV" ) ? 
+         fileSystemModule.readFileSync(pathModule.join("./SmartBidNowCertificates/", "SelfSignedCert.pem")) :
+         fileSystemModule.readFileSync(pathModule.join("./SmartBidNowCertificates/", "smartbidnow.com-certificate.crt")),
 
     minVersion: 'TLSv1.2',
 
