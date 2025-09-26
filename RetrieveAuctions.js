@@ -72,9 +72,17 @@ async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
     try
     {
 
+        LoggerUtilModule.logInformation("retrieveAuctions.inputQueryRecord = " + JSON.stringify(inputQueryRecord));
+
         // Validate the Incoming Request
 
-        if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
+        if( inputQueryRecord == null || inputQueryRecord == undefined || Object.keys(inputQueryRecord).length == 0 )
+        {
+
+            LoggerUtilModule.logInformation("retrieveAuctions.inputQueryRecord is empty");
+        }
+
+        else if( !InputValidatorModule.validateUserInputObjectValue(inputQueryRecord) ||
             !InputValidatorModule.validateUserInputObjectKeysPresence(inputQueryRecord, 
                 GlobalsForServerModule.assetRecordRequiredValues) )
         {
@@ -90,7 +98,9 @@ async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
 
         // Process the Incoming Request
 
-        var mySqlRetrieveAuctionsQuery = 'Select * from assets where ';
+        var mySqlRetrieveAuctionsQuery = ( inputQueryRecord == null || inputQueryRecord == undefined  || 
+            Object.keys(inputQueryRecord).length == 0 ) ? 'Select * from assets' :
+            'Select * from assets where ';
 
         for( let currentInputKey of Object.keys(inputQueryRecord) )
         {
@@ -104,7 +114,7 @@ async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
             }
         }
 
-        LoggerUtilModule.logInformation("retrieveAuctions2.mySqlRetrieveAuctionsQuery = " + mySqlRetrieveAuctionsQuery);
+        LoggerUtilModule.logInformation("retrieveAuctions.mySqlRetrieveAuctionsQuery = " + mySqlRetrieveAuctionsQuery);
 
         let mySqlRetrieveAuctionsResult = await mySqlConnection.execute( mySqlRetrieveAuctionsQuery );
 
@@ -114,7 +124,7 @@ async function retrieveAuctions(mySqlConnection, inputQueryRecord, httpResponse)
         httpResponse.writeHead( 200, {'content-type' : 'text/plain'});    
         httpResponse.end(JSON.stringify(mySqlRetrieveAuctionsResult[0]));
 
-        mySqlConnection.end();                
+        mySqlConnection.end();
 
     }
 
